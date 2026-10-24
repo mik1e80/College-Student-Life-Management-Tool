@@ -46,7 +46,7 @@ let reportMonth = today.slice(0, 7);
 let reportMode = 'month';
 let view = 'home', currentCategory = null, currentItem = null, state, storageBroken = false;
 let installPrompt = null, draftDirty = false;
-const navs = [['home', 'grid', '生活费'], ['plan', 'book', '月计划'], ['report', 'chart', '收支统计'], ['settings', 'settings', '我的账本']];
+const navs = [['home', 'grid', '生活费'], ['plan', 'book', '月计划'], ['report', 'chart', '支出统计'], ['settings', 'settings', '我的账本']];
 try {
   const raw = localStorage.getItem(KEY);
   state = raw ? readState(raw) : createState(today);
