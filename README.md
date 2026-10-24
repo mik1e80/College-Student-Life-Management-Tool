@@ -2,6 +2,8 @@
 
 第一版可安装手机网页应用（PWA），使用原生 HTML / CSS / JavaScript，无第三方运行依赖。独立于同级 MoonBit 项目。
 
+**[打开一日有数](https://campus-life-yiri-20261025.my-team-1261.chatgpt.site)** · 私有站点，请使用创建者的 ChatGPT 账号登录。手机安装说明见 [使用说明](docs/usage.md)。
+
 ## 本地运行
 
 需要 Node.js 22 或更新版本。在本目录执行：
@@ -48,6 +50,7 @@ node --test tests/*.test.mjs
 - [数据结构与实现](docs/architecture.md)
 - [开发过程记录](docs/development-log.md)
 - [验证记录](docs/verification.md)
+- [发布记录](docs/deployment.md)
 - [版本变更](CHANGELOG.md)
 
 ## 界面预览

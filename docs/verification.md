@@ -34,3 +34,7 @@
 核心跨日、历史补录和历史预算规则通过注入日期进行自动测试，没有修改设备时间。尚未在真实 Android / iPhone 上执行安装、长时间离线或跨午夜运行。不能把配置和单元测试通过等同于所有手机环境均已验证。
 
 数据不跨设备同步，完整备份目前只可导出。个人本地账本的锁定限制不防止手动修改浏览器存储或设备时钟。
+
+## 远程验证
+
+GitHub Actions [首次运行](https://github.com/mik1e80/College-Student-Life-Management-Tool/actions/runs/40112186290) 已返回 completed / success，对应源码 `648f2fdf56ac62830be9094a53e3ad3898fba6d1`。Sites 发布状态已返回 succeeded，正式地址浏览器检查显示私有登录门禁；详细身份及链接见 [发布记录](deployment.md)。
