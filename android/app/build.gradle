@@ -1,0 +1,37 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'cn.yiriyoushu.campuslife'
+    compileSdk 35
+    buildToolsVersion '35.0.0'
+
+    buildFeatures {
+        buildConfig true
+    }
+
+    defaultConfig {
+        applicationId 'cn.yiriyoushu.campuslife'
+        minSdk 26
+        targetSdk 35
+        versionCode 2
+        versionName '1.1.0'
+    }
+
+    buildTypes {
+        release {
+            // Release signing happens outside CI; no private signing material is checked in.
+            minifyEnabled false
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+dependencies {
+    implementation 'androidx.webkit:webkit:1.12.1'
+}

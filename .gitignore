@@ -3,3 +3,11 @@ node_modules/
 *.tgz
 .DS_Store
 .local/
+android/.gradle/
+android/**/build/
+android/local.properties
+android/app/src/main/assets/
+*.jks
+*.keystore
+*.p12
+*.idsig

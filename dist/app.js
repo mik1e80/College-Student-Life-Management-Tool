@@ -3,6 +3,7 @@ import { createState, readState, dateKey, datesInMonth, shiftMonth, parseMoney, 
 const KEY = 'yiri-campus-life-v1';
 const app = document.querySelector('#app');
 const modal = document.querySelector('#modal');
+const isAndroidApp = location.origin === 'https://appassets.androidplatform.net' && typeof window.AndroidApp?.isNative === 'function' && window.AndroidApp.isNative();
 const icons = {
   grid: '<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
   book: '<path d="M4 4h7v16H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Zm7 0h9a2 2 0 0 1 2 2v12a2 2 0 0 0-2 2h-9M6 8h2m7 0h3m-3 4h3"/>',
@@ -94,6 +95,10 @@ function render() {
   const category = state.categories.find(x => x.id === currentCategory);
   const name = navs.find(x => x[0] === view)?.[2] || category?.name || '生活费';
   app.innerHTML = `<div class="shell"><aside class="sidebar"><div class="brand"><img src="./icon.svg" alt=""><div><strong>一日有数</strong><small>A LITTLE EVERY DAY</small></div></div><div class="side-caption">MY CAMPUS LIFE</div>${navMarkup()}<div class="side-note"><div class="sprout">${icon('leaf')}</div><p>把生活安排好，<br>也给快乐留一点预算。</p><small>从今天的一笔开始</small></div><div class="side-footer"><span class="dot"></span>你的生活，慢慢有数</div></aside><main class="main"><header class="topbar"><span class="top-breadcrumb">我的校园生活&nbsp; / &nbsp;${esc(name)}</span><div class="mobile-brand"><img src="./icon.svg" alt="">一日有数</div><div class="right"><span>${esc(dateLabel(today))}</span><span class="device-label">本机账本</span><span class="avatar" aria-label="学生账本">同学</span></div></header>${view === 'home' ? home() : view === 'category' ? categoryPage() : view === 'detail' ? detail() : view === 'plan' ? planPage() : view === 'report' ? report() : settings()}<footer class="bottom-note">${icon('leaf')}认真生活的每一笔，都算数。</footer></main>${navMarkup(true)}</div>`;
+  if (isAndroidApp && view === 'settings') {
+    const installPanel = app.querySelector('[data-action="install"]')?.closest('section');
+    if (installPanel) installPanel.innerHTML = `<h2>${icon('phone')}安卓版已安装</h2><p>已安装一日有数 1.1.0。记账、月计划与统计均可离线使用，不依赖下载网站。</p><p class="stat-foot">数据保存在本应用中；卸载或清除应用数据会删除账本，请定期导出备份。网页账本与安卓应用数据独立保存。</p>`;
+  }
   bind();
 }
 function heading(eyebrow, title, subtitle, right = '', back = '') {
@@ -165,7 +170,7 @@ function report() {
   return `${heading('YOUR MONEY, AT A GLANCE', '每一笔，都看得见。', '看看钱花在哪里，也看看自己怎样生活。', `<div class="switch"><button data-report-mode="day" class="${reportMode === 'day' ? 'active' : ''}">日展示</button><button data-report-mode="month" class="${reportMode === 'month' ? 'active' : ''}">月展示</button></div>`)}<div class="wide"><div class="plan-bar">${reportMode === 'month' ? `<div class="month-picker"><button class="icon-btn" data-report-shift="-1" aria-label="上个月统计">${icon('left')}</button><strong>${monthLabel(reportMonth)}</strong><button class="icon-btn" data-report-shift="1" aria-label="下个月统计">${icon('chevron')}</button></div>` : `<input class="inline-date" type="date" id="report-date" value="${selectedDate}" aria-label="统计日期">`}<button class="btn small ghost" data-action="export-csv">${icon('download')}导出明细</button></div><div class="stats-top"><div class="stat-box"><div class="stat-label">预计总额 ${icon('book')}</div><div class="stat-value">${sum.plannedCells ? money(sum.planned) : '— —'}<small>元</small></div><div class="stat-foot">${reportMode === 'month' ? '包含本月已设定的未来预算' : '按当日生效的预算'}</div></div><div class="stat-box"><div class="stat-label">实际支出 ${icon('wallet')}</div><div class="stat-value">${sum.recorded ? money(sum.actual) : '— —'}<small>元</small></div><div class="stat-foot">${sum.recorded} 项已有实际记录</div></div><div class="stat-box"><div class="stat-label">已记项目结余 ${icon('leaf')}</div><div class="stat-value ${sum.pairedCells ? color(sum.difference) : ''}">${sum.pairedCells ? signed(sum.difference) : '— —'}</div><div class="stat-foot">仅对预算与实际均有值的项目比较</div></div></div><div class="alert">${icon('info')}<span>${due.expected - due.recorded > 0 ? `截至${reportMode === 'month' ? '今天或月末' : '所选日期'}，还有 ${due.expected - due.recorded} 项未记录实际金额。未记录不代表 0 元，结余仅供参考。` : due.expected ? '所选期间应记项目均已填写。' : '所选期间没有应记项目。'}${sum.plannedCells < sum.expected ? ' 部分项目尚未设置预算。' : ''}</span></div><section class="panel report-section"><h2>花在生活的哪里</h2>${categorySums.map(c => `<div class="report-row"><div class="cat-label">${icon(c.icon)}<span>${esc(c.name)}</span></div><div><div class="bar-track"><div class="bar-fill" style="width:${sum.actual ? c.sum.actual / sum.actual * 100 : 0}%"></div></div><small>${c.sum.recorded ? `${c.sum.recorded} 项已记 · 占 ${sum.actual ? (c.sum.actual / sum.actual * 100).toFixed(1) : '0'}%` : '暂无记录'}</small></div><div class="report-amount">${c.sum.recorded ? `¥ ${money(c.sum.actual)}` : '— —'}</div></div>`).join('')}</section>${reportMode === 'month' ? `<section class="panel report-section"><h2>这个月的支出节奏</h2><div class="report-days" role="img" aria-label="${esc(monthLabel(reportMonth))}每日实际支出柱状图">${daily.map((d, i) => `<div class="report-day" title="${monthDays[i]}：${d.recorded ? money(d.actual) + ' 元' : '未记录'}"><div class="bar" style="height:${d.actual / maxDaily * 110}px;opacity:${d.recorded ? 1 : .2}"></div><span>${i === 0 || (i + 1) % 5 === 0 || i === daily.length - 1 ? i + 1 : ''}</span></div>`).join('')}</div><p class="stat-foot">柱状图仅显示已记录支出；完整逐日金额可通过「导出明细」查看。</p></section>` : ''}</div>`;
 }
 function settings() {
-  return `${heading('A LITTLE SPACE OF YOUR OWN', '你的生活小账本', '规则简单一点，记录认真一点。')}<div class="settings-grid wide"><section class="panel"><h2>${icon('phone')}放进手机主屏幕</h2><p>安装后像普通应用一样打开，首次联网加载完成后，也可以离线记账。</p><button class="btn primary" data-action="install">${icon('plus')}安装 / 查看安装方法</button><p class="stat-foot">手机请打开正式 HTTPS 地址。部分内置浏览器需转到系统浏览器安装。</p></section><section class="panel"><h2>${icon('download')}给记录留一份备份</h2><p>数据保存在当前设备、当前浏览器中，暂不跨设备同步。清理浏览器数据会清除账本，建议定期导出保存。</p><button class="btn" data-action="export-json">${icon('download')}下载完整备份 JSON</button><p class="stat-foot">备份包含分类、预算版本及金额记录。本版暂未提供备份导入。</p></section><section class="panel full"><h2>${icon('lock')}我们约好的记账规则</h2><ol><li>八个常用大类默认建立，餐饮自带早餐、午餐、晚餐。大类和小类都可添加，建立后不提供删除。</li><li>每月单独制定计划，填写小类的每日预计金额。当前月调整从当天生效，以前日期的预算保留不变。</li><li>当天实际金额可以调整；本机日期跨过零点后，已填金额和历史预算自动锁定。</li><li>历史日期未填的实际金额，可以补录一次。提交前需要核对，保存后立即锁定，0 元也算一次有效记录。</li><li>差值 = 预计 − 实际。节余为带加号的绿色数字，超支为红色负数，0 元使用默认颜色。</li><li>未记录与 0 元分开显示。汇总差值只比较预计和实际都已填写的项目，不把漏记当成节余。</li></ol><p class="stat-foot">这是本地个人账本。锁定限制由应用按设备日期执行，不能防止手动修改浏览器存储或设备时间。时间管理功能留待后续版本。</p></section><section class="panel full"><h2>${icon('leaf')}一日有数 <span class="tag">第一版 · 1.0.0</span></h2><p>从每一天的小计划开始，慢慢找到适合自己的生活节奏。</p><span class="saving-status">当前有 ${state.categories.length} 个大类、${state.items.length} 个小类、${Object.keys(state.records).length} 条实际金额记录。</span></section></div>`;
+  return `${heading('A LITTLE SPACE OF YOUR OWN', '你的生活小账本', '规则简单一点，记录认真一点。')}<div class="settings-grid wide"><section class="panel"><h2>${icon('phone')}放进手机主屏幕</h2><p>安装后像普通应用一样打开，首次联网加载完成后，也可以离线记账。</p><button class="btn primary" data-action="install">${icon('plus')}安装 / 查看安装方法</button><p class="stat-foot">手机请打开正式 HTTPS 地址。部分内置浏览器需转到系统浏览器安装。</p></section><section class="panel"><h2>${icon('download')}给记录留一份备份</h2><p>数据保存在当前设备、当前浏览器中，暂不跨设备同步。清理浏览器数据会清除账本，建议定期导出保存。</p><button class="btn" data-action="export-json">${icon('download')}下载完整备份 JSON</button><p class="stat-foot">备份包含分类、预算版本及金额记录。本版暂未提供备份导入。</p></section><section class="panel full"><h2>${icon('lock')}我们约好的记账规则</h2><ol><li>八个常用大类默认建立，餐饮自带早餐、午餐、晚餐。大类和小类都可添加，建立后不提供删除。</li><li>每月单独制定计划，填写小类的每日预计金额。当前月调整从当天生效，以前日期的预算保留不变。</li><li>当天实际金额可以调整；本机日期跨过零点后，已填金额和历史预算自动锁定。</li><li>历史日期未填的实际金额，可以补录一次。提交前需要核对，保存后立即锁定，0 元也算一次有效记录。</li><li>差值 = 预计 − 实际。节余为带加号的绿色数字，超支为红色负数，0 元使用默认颜色。</li><li>未记录与 0 元分开显示。汇总差值只比较预计和实际都已填写的项目，不把漏记当成节余。</li></ol><p class="stat-foot">这是本地个人账本。锁定限制由应用按设备日期执行，不能防止手动修改浏览器存储或设备时间。时间管理功能留待后续版本。</p></section><section class="panel full"><h2>${icon('leaf')}一日有数 <span class="tag">1.1.0</span></h2><p>从每一天的小计划开始，慢慢找到适合自己的生活节奏。</p><span class="saving-status">当前有 ${state.categories.length} 个大类、${state.items.length} 个小类、${Object.keys(state.records).length} 条实际金额记录。</span></section></div>`;
 }
 function bind() {
   app.querySelectorAll('[data-nav]').forEach(el => el.onclick = () => navigate(el.dataset.nav));
@@ -266,11 +271,17 @@ async function submitActual() {
   } else if (await commit(s => saveActual(s, id, date, cents, dateKey()))) { draftDirty = false; render(); toast('已保存。认真生活的这一天，也记下了。'); }
 }
 function download(text, name, type) {
+  if (isAndroidApp) {
+    window.AndroidApp.saveText(name, type.split(';')[0], text);
+    toast('请选择文件保存位置');
+    return 'native';
+  }
   const url = URL.createObjectURL(new Blob([text], { type })); const anchor = document.createElement('a');
   anchor.href = url; anchor.download = name; document.body.append(anchor); anchor.click(); anchor.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+  return 'browser';
 }
 function exportJSON() {
-  try { const latest = readState(localStorage.getItem(KEY)); download(JSON.stringify(latest, null, 2), `一日有数-完整备份-${dateKey()}.json`, 'application/json'); toast('备份已下载，请保存到安全的位置'); }
+  try { const latest = readState(localStorage.getItem(KEY)); const mode = download(JSON.stringify(latest, null, 2), `一日有数-完整备份-${dateKey()}.json`, 'application/json'); if (mode === 'browser') toast('备份已下载，请保存到安全的位置'); }
   catch (e) { toast('导出失败：' + e.message); }
 }
 function exportCSV() {
@@ -286,6 +297,7 @@ function exportCSV() {
   download('\uFEFF' + rows.map(row => row.map(cell).join(',')).join('\r\n'), `一日有数-明细-${reportMode === 'month' ? reportMonth : selectedDate}.csv`, 'text/csv;charset=utf-8');
 }
 async function install() {
+  if (isAndroidApp) { toast('当前已安装安卓版，可直接离线使用'); return; }
   if (installPrompt) { const prompt = installPrompt; installPrompt = null; await prompt.prompt(); const choice = await prompt.userChoice; toast(choice.outcome === 'accepted' ? '安装已提交，可以从主屏幕打开' : '随时可以在这里再次查看安装方法'); return; }
   const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone;
   modal.innerHTML = `<div class="modal-top"><h2 id="modal-title">${standalone ? '已经在应用中啦' : '把一日有数放进手机'}</h2><button class="icon-btn" data-close aria-label="关闭">${icon('close')}</button></div><div class="modal-body">${standalone ? '当前已在独立应用模式中运行。' : '<p><strong>iPhone / iPad</strong><br>用 Safari 打开此页面 → 轻点分享按钮 → 添加到主屏幕。</p><p><strong>安卓手机</strong><br>用支持安装网页应用的浏览器打开 → 菜单 → 安装应用 / 添加到主屏幕。</p><p>首次联网加载后可离线使用。安装到主屏幕不会自动同步不同浏览器的数据，请继续使用原来的浏览器账本。</p>'}</div><div class="modal-actions"><button class="btn primary" data-close>知道了</button></div>`;
@@ -293,6 +305,16 @@ async function install() {
 }
 window.addEventListener('beforeinstallprompt', event => { event.preventDefault(); installPrompt = event; });
 window.addEventListener('appinstalled', () => { installPrompt = null; toast('已安装到主屏幕'); });
+window.YiriNativeExportResult = (success, message) => { if (isAndroidApp) toast(message || (success ? '文件已保存' : '已取消保存')); };
+window.YiriNativeBack = () => {
+  if (!isAndroidApp) return;
+  if (modal.open) { modal.close(); return; }
+  if (storageBroken) { window.AndroidApp.exitApp(); return; }
+  if (!leaveDraft()) return;
+  if (view === 'detail') navigate('category', currentCategory);
+  else if (view !== 'home') navigate('home');
+  else window.AndroidApp.exitApp();
+};
 window.addEventListener('storage', event => {
   if (event.key !== KEY || !event.newValue) return;
   try { state = readState(event.newValue); if (!draftDirty && !modal.open) render(); else toast('另一窗口已更新账本，保存时会重新核对'); } catch { toast('另一窗口的数据异常，请先导出备份'); }
@@ -301,4 +323,4 @@ window.addEventListener('beforeunload', e => { if (draftDirty) { e.preventDefaul
 document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshDay(); });
 window.addEventListener('focus', () => refreshDay());
 if (!storageBroken) { render(); setInterval(refreshDay, 15000); }
-if ('serviceWorker' in navigator && !storageBroken) navigator.serviceWorker.register('./sw.js').catch(() => toast('离线服务暂未启用，联网使用和本机保存仍可用'));
+if ('serviceWorker' in navigator && !storageBroken && !isAndroidApp) navigator.serviceWorker.register('./sw.js').catch(() => toast('离线服务暂未启用，联网使用和本机保存仍可用'));
