@@ -1,0 +1,73 @@
+name: Publish Android release
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'download-site/yiri-1.1.0.apk'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-v1.1.0
+  cancel-in-progress: false
+
+jobs:
+  release:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify APK size, SHA-256, and release metadata
+        run: node scripts/verify-release.mjs
+      - name: Verify the actual APK signature with Android build tools
+        shell: bash
+        run: |
+          set -euo pipefail
+          sdk_root="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}"
+          if [[ -z "$sdk_root" || ! -d "$sdk_root/build-tools" ]]; then
+            echo 'The runner does not have Android SDK build tools.' >&2
+            exit 1
+          fi
+          apksigner_path="$(find "$sdk_root/build-tools" -mindepth 2 -maxdepth 2 -type f -name apksigner | sort -V | tail -n 1)"
+          if [[ -z "$apksigner_path" || ! -x "$apksigner_path" ]]; then
+            echo 'No executable apksigner was found in the runner Android SDK.' >&2
+            exit 1
+          fi
+          verification="$(LC_ALL=C "$apksigner_path" verify --verbose --print-certs download-site/yiri-1.1.0.apk)"
+          printf '%s\n' "$verification"
+          if ! grep -Eq '^Verified using v2 scheme .*: true$' <<< "$verification"; then
+            echo 'The APK did not verify with APK Signature Scheme v2.' >&2
+            exit 1
+          fi
+      - name: Create or resume the GitHub release and upload verified files
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_COMMIT: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          tag='v1.1.0'
+          title='一日有数 v1.1.0 · 安卓安装包'
+          notes='docs/releases/v1.1.0.md'
+          test -s "$notes"
+          if ! gh release view "$tag" --json tagName > /dev/null 2>&1; then
+            gh release create "$tag" --target "$RELEASE_COMMIT" --draft --title "$title" --notes-file "$notes"
+          fi
+          assets=(download-site/yiri-1.1.0.apk download-site/yiri-1.1.0.apk.sha256 download-site/release.json)
+          shopt -s nullglob
+          assets+=(download-site/*.zip)
+          gh release upload "$tag" "${assets[@]}" --clobber
+          gh release edit "$tag" --draft=false --latest --title "$title" --notes-file "$notes"
+          gh release view "$tag" --json url --jq '.url'

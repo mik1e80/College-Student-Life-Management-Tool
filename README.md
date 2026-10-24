@@ -1,8 +1,12 @@
 # 一日有数 · 大学生生活费管理
 
-第一版可安装手机网页应用（PWA），使用原生 HTML / CSS / JavaScript，无第三方运行依赖。独立于同级 MoonBit 项目。
+大学生生活费管理工具，提供安卓 APK 和手机网页版本。安卓包内置账本页面，安装后可离线使用，不需要 Google Play 服务。
+
+**[下载安卓版 APK](https://github.com/mik1e80/College-Student-Life-Management-Tool/releases/download/v1.1.0/yiri-1.1.0.apk)** · [GitHub 版本页面](https://github.com/mik1e80/College-Student-Life-Management-Tool/releases/tag/v1.1.0) · Android 8.0 及以上、可正常工作的现代系统 WebView。
 
 **[打开一日有数](https://campus-life-yiri-20261025.my-team-1261.chatgpt.site)** · 公开访问，无需登录。手机安装说明见 [使用说明](docs/usage.md)。
+
+安卓安装：用手机浏览器下载 `.apk`，在下载列表中打开，按系统提示安装。「Source code」压缩包是源码，不是安装包。网页与安卓应用的账本分别保存，不会自动迁移。
 
 ## 本地运行
 
@@ -47,11 +51,13 @@ node --test tests/*.test.mjs
 
 - [需求与验收规则](docs/requirements.md)
 - [手机使用说明](docs/usage.md)
+- [安卓构建与发行](docs/android.md)
 - [数据结构与实现](docs/architecture.md)
 - [开发过程记录](docs/development-log.md)
 - [验证记录](docs/verification.md)
 - [发布记录](docs/deployment.md)
 - [版本变更](CHANGELOG.md)
+- [安卓版 1.1.0 发行说明](docs/releases/v1.1.0.md)
 
 ## 界面预览
 

@@ -40,3 +40,13 @@
 GitHub Actions [首次运行](https://github.com/mik1e80/College-Student-Life-Management-Tool/actions/runs/40112186290) 已返回 completed / success，对应源码 `648f2fdf56ac62830be9094a53e3ad3898fba6d1`。Sites 发布状态已返回 succeeded；首次发布的私有登录门禁属于当时验证结果。
 
 随后按用户要求将站点改为公开访问。Sites 返回 `access_mode=public`、访问策略 `revision=2`；浏览器新标签页直接打开正式地址，显示应用主页，无需登录。见 [公开访问截图](screenshots/public-home.png)。此次仅改变访问权限并同步文档，未修改应用资源；详细记录见 [发布记录](deployment.md)。
+
+## Android 1.1.0
+
+[构建及模拟器工作流](https://github.com/mik1e80/College-Student-Life-Management-Tool/actions/runs/40113988722)的 `build` 与 `smoke` 均成功，对应源码 `dc48947a74cefb23f461ea31d517769c262e7dbf`。构建中再次运行 18 项单元测试，检查 release APK 没有申请联网或全盘文件权限。
+
+Android 35 模拟器检查 debug 包在关闭 Wi-Fi 和移动数据后首次打开，填写实际金额、系统返回、强制停止重启后记录保留；保存月计划、查看支出统计和原生设置界面；未注册 Service Worker，拒绝超过 1 MiB 的原生导出请求。
+
+unsigned release 下载到本机后单独签名。Google apksig 8.7.3 返回 verified=true，v2 / v3 有效；发布文件大小 945852 字节，SHA-256 `4be20a6e3c5b4a5db078fb1bf9d71a8530ba39d58b2058e00b9337ff71598a57`。`node scripts/verify-release.mjs` 核对元数据、大小、哈希和 sidecar 通过。发行流程还会独立用 Android SDK apksigner 验证实际签名。
+
+模拟器验证不等同于实体手机验证。未在大陆运营商网络实测 GitHub 下载表现；用户已接受使用 GitHub Releases 发布。
