@@ -37,4 +37,6 @@
 
 ## 远程验证
 
-GitHub Actions [首次运行](https://github.com/mik1e80/College-Student-Life-Management-Tool/actions/runs/40112186290) 已返回 completed / success，对应源码 `648f2fdf56ac62830be9094a53e3ad3898fba6d1`。Sites 发布状态已返回 succeeded，正式地址浏览器检查显示私有登录门禁；详细身份及链接见 [发布记录](deployment.md)。
+GitHub Actions [首次运行](https://github.com/mik1e80/College-Student-Life-Management-Tool/actions/runs/40112186290) 已返回 completed / success，对应源码 `648f2fdf56ac62830be9094a53e3ad3898fba6d1`。Sites 发布状态已返回 succeeded；首次发布的私有登录门禁属于当时验证结果。
+
+随后按用户要求将站点改为公开访问。Sites 返回 `access_mode=public`、访问策略 `revision=2`；浏览器新标签页直接打开正式地址，显示应用主页，无需登录。见 [公开访问截图](screenshots/public-home.png)。此次仅改变访问权限并同步文档，未修改应用资源；详细记录见 [发布记录](deployment.md)。

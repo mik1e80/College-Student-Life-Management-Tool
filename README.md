@@ -2,7 +2,7 @@
 
 第一版可安装手机网页应用（PWA），使用原生 HTML / CSS / JavaScript，无第三方运行依赖。独立于同级 MoonBit 项目。
 
-**[打开一日有数](https://campus-life-yiri-20261025.my-team-1261.chatgpt.site)** · 私有站点，请使用创建者的 ChatGPT 账号登录。手机安装说明见 [使用说明](docs/usage.md)。
+**[打开一日有数](https://campus-life-yiri-20261025.my-team-1261.chatgpt.site)** · 公开访问，无需登录。手机安装说明见 [使用说明](docs/usage.md)。
 
 ## 本地运行
 
