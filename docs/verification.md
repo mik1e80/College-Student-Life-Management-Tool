@@ -115,3 +115,14 @@ APK 版本 1.3.0 / versionCode 5，949948 字节，v2 / v3 签名有效，证书
 56 项单元测试通过。浏览器读取实际样式：页面背景 rgb(255,255,255)、正文 rgb(32,32,32)、主按钮 rgb(23,23,23)、分类装饰 rgb(242,242,242)；自由时间 rgb(40,91,69)，未规划 rgb(164,60,50)。手机首页、预算和统计均无横向溢出，旧测试账目及跨日时间继续显示。
 
 截图：[首页](screenshots/home-shuangheng-1.5.0.png)、[预算](screenshots/plan-shuangheng-1.5.0.png)。
+
+
+[安卓构建与模拟器验证](https://github.com/mik1e80/College-Student-Life-Management-Tool/actions/runs/40195513837) build / smoke 均成功。实际 WebView 验证双衡名称、白色背景和黑色金额面板；系统返回、原账本升级、金额周期、分类管理、跨日安排、复制、修改删除以及立即强停后的六条安排恢复全部通过。
+
+APK 1.5.0 / versionCode 8，962369 字节。沿用原发行证书，v2 / v3 签名有效；十个运行资源与验证源码逐字节一致，安卓内嵌启动图标已提取核对。SHA-256：
+
+```text
+17ca1c3928b15d9a75c90917d735b5c5fccd0172cfc33a15f26fb416e67b5452
+```
+
+构建源码 `b86ce4f2e559ba8c131bb14fca28e64377363306`；附件包括 APK、校验文件、release.json 和完整下载页 ZIP。

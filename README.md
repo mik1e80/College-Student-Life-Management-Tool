@@ -74,4 +74,4 @@ node --test tests/*.test.mjs
 
 以下是本地人工测试数据，不是预置账单。
 
-<img src="docs/screenshots/home-mobile.png" alt="手机生活费主页" width="240"> <img src="docs/screenshots/month-report.png" alt="手机月统计" width="240">
+<img src="docs/screenshots/home-shuangheng-1.5.0.png" alt="双衡黑白手机首页" width="240"> <img src="docs/screenshots/plan-shuangheng-1.5.0.png" alt="双衡黑白预算计划" width="240">
