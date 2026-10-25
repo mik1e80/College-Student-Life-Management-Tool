@@ -33,7 +33,7 @@ export function createReminderUI({modal,native,load,commit,render,toast,openEntr
   }
   function refreshStatus() { if(modal.querySelector('#reminder-settings'))showSettings(); }
   function showNext() {
-    if(popup.open||modal.open||document.hidden)return;
+    if(!queue.length||popup.open||modal.open||document.hidden)return;
     const current=load(),valid=new Set(reminderEvents(current).map(e=>e.key));
     let event;
     while(queue.length) { const candidate=queue.shift();if(valid.has(candidate.key)&&candidate.expiresAt>Date.now()){event=candidate;break;} }
@@ -62,7 +62,8 @@ export function createReminderUI({modal,native,load,commit,render,toast,openEntr
       showNext();
     }catch {toast('提醒暂时无法读取，请检查浏览器存储');}finally{busy=false;}
   }
-  const timer=setInterval(()=>{tick();showNext();},1000);
+  // Android uses AlarmManager; it does not need a JavaScript polling timer.
+  if(!native)setInterval(()=>{tick();showNext();},1000);
   document.addEventListener('visibilitychange',()=>{if(!document.hidden){tick();refreshStatus();}});
   return {showSettings,statusLine,refreshStatus};
 }

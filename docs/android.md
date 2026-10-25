@@ -4,13 +4,15 @@
 
 安卓版本将账本页面、图标和程序一起放进 APK。安装完成后，首次启动也不需要访问原网站、ChatGPT、GitHub 或 Google 服务。APK 不申请联网权限；账本保存在应用自己的 WebView 存储内。
 
+1.6.0 新增本机任务提醒，按需使用通知和精确闹钟权限，以及开机恢复和振动权限。无联网权限。设置与系统限制详见 [任务提醒](reminders.md)。
+
 ## 版本与支持范围
 
 | 项目 | 当前设定 |
 | --- | --- |
 | 应用名 | 双衡 |
 | applicationId | `cn.yiriyoushu.campuslife` |
-| versionName / versionCode | `1.5.0` / `8` |
+| versionName / versionCode | `1.6.0` / `9` |
 | 系统下限 | Android 8.0 / API 26 |
 | 编译 / 目标 SDK | API 35 |
 | Android Gradle Plugin | `8.7.3` |

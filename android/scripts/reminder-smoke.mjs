@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {execFileSync} from 'node:child_process';
 import {writeFile,mkdir} from 'node:fs/promises';
 const app='cn.yiriyoushu.campuslife',key='yiri-campus-life-v1',checks=[];
-const adb=(...args)=>execFileSync('adb',args,{encoding:'utf8',timeout:30000}).trim();
+const adb=(...args)=>execFileSync('adb',args,{encoding:'utf8',timeout:30000,maxBuffer:8*1024*1024}).trim();
 const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 let client;
 async function connect() {
@@ -23,7 +23,7 @@ async function connect() {
 async function until(fn,label,timeout=15000) {
   const end=Date.now()+timeout;while(Date.now()<end){if(await fn()){checks.push(label);console.log('PASS: '+label);return;}await pause(500);}throw Error('Timed out: '+label);
 }
-async function screenshot(name){await mkdir('android/screenshots',{recursive:true});await writeFile(`android/screenshots/${name}.png`,execFileSync('adb',['exec-out','screencap','-p']));}
+async function screenshot(name){await mkdir('android/screenshots',{recursive:true});await writeFile(`android/screenshots/${name}.png`,execFileSync('adb',['exec-out','screencap','-p'],{maxBuffer:8*1024*1024}));}
 async function replace(state) {
   assert.equal(await client.evaluate(`(() => {const raw=${JSON.stringify(JSON.stringify(state))};if(!AndroidApp.saveLedger(raw))return false;localStorage.setItem(${JSON.stringify(key)},raw);location.reload();return true;})()`),true);
   await until(()=>client.evaluate("!!document.querySelector('[data-category]')"),'Ledger reloads with the reminder configuration');
@@ -64,11 +64,13 @@ try {
   await until(()=>{try{return !adb('shell','pidof',app);}catch{return true;}},'App process exits normally while its next alarm remains registered');
   await until(()=>adb('shell','cmd','notification','list').includes('start-warning-test'),'A real start warning is delivered after the app process was killed',80000);
   adb('shell','cmd','statusbar','expand-notifications');await screenshot('15-background-reminder');adb('shell','cmd','statusbar','collapse');
-  adb('shell','am','start','-n',app+'/.MainActivity');client=await connect();
+  adb('shell','am','start','-n',app+'/.MainActivity','--es','reminderDate','2000-01-01','--es','reminderId','start-warning-test');client=await connect();
+  await until(()=>client.evaluate("document.querySelector('#time-title')?.value==='开始提醒验证'"),'Notification target opens the saved task using its actual date');
   await until(async()=>JSON.parse(await client.evaluate('AndroidApp.reminderStatus()')).nextAt===0,'Delivered reminders are not scheduled again on app reopen');
   const pending=structuredClone(fixture.state);pending.revision+=20;
   const task=pending.timeEntries[1];task.date='2099-01-01';task.start=540;task.end=600;pending.timeEntries=[task];await replace(pending);
   const firstPending=JSON.parse(await client.evaluate('AndroidApp.reminderStatus()')).nextAt;assert(firstPending>Date.now());
+  assert(!adb('shell','cmd','notification','list').includes('end-warning-test'));
   pending.revision++;task.start+=10;task.end+=10;await replace(pending);
   assert.equal(JSON.parse(await client.evaluate('AndroidApp.reminderStatus()')).nextAt,firstPending+600000);
   pending.revision++;pending.timeEntries=[];await replace(pending);assert.equal(JSON.parse(await client.evaluate('AndroidApp.reminderStatus()')).nextAt,0);

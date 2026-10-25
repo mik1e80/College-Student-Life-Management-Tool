@@ -111,6 +111,10 @@ final class ReminderScheduler {
             if(!enabled(ledger)){context.getSystemService(NotificationManager.class).cancelAll();prefs.edit().remove("pendingKey").apply();return;}
             long now=System.currentTimeMillis();
             List<Event> planned=events(ledger);Event next=null;
+            java.util.Set<String> validKeys=new java.util.HashSet<>();for(Event event:planned)validKeys.add(event.key);
+            NotificationManager manager=context.getSystemService(NotificationManager.class);
+            for(android.service.notification.StatusBarNotification notification:manager.getActiveNotifications())
+                if(!validKeys.contains(notification.getTag()))manager.cancel(notification.getTag(),notification.getId());
             // Resume/time changes must not discard an alarm already becoming due.
             for(Event event:planned)if(event.key.equals(previous)&&event.fire<=now&&now<event.boundary+60000&&!delivered.has(event.key)){next=event;break;}
             if(next==null)for(Event event:planned)if(event.fire>now&&!delivered.has(event.key)){next=event;break;}

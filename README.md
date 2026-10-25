@@ -2,9 +2,9 @@
 
 大学生生活管理工具，提供安卓 APK 和手机网页版本。安卓包内置账本页面，安装后可离线使用，不需要 Google Play 服务。
 
-**[下载安卓版 APK](https://github.com/mik1e80/College-Student-Life-Management-Tool/releases/download/v1.5.0/yiri-1.5.0.apk)** · [GitHub 版本页面](https://github.com/mik1e80/College-Student-Life-Management-Tool/releases/tag/v1.5.0) · Android 8.0 及以上、可正常工作的现代系统 WebView。
+**[下载安卓版 APK](https://github.com/mik1e80/College-Student-Life-Management-Tool/releases/download/v1.6.0/yiri-1.6.0.apk)** · [GitHub 版本页面](https://github.com/mik1e80/College-Student-Life-Management-Tool/releases/tag/v1.6.0) · Android 8.0 及以上、可正常工作的现代系统 WebView。
 
-1.5.0 更名为「双衡」，使用全新黑白图标与白底、黑字、黑色按钮。保留自由时间绿色、未规划红色和收支差值颜色。沿用原签名，直接覆盖安装，旧账本与时间安排保留。
+1.6.0 新增时间任务提醒：新任务默认开始前、结束前各 5 分钟，可分别调整或关闭。安卓支持前台弹窗和后台通知，网页支持页面运行时弹窗。请先开启「任务提醒」总开关。沿用原签名，覆盖安装请勿卸载。
 
 **[打开双衡](https://campus-life-yiri-20261025.my-team-1261.chatgpt.site)** · 公开访问，无需登录。手机安装说明见 [使用说明](docs/usage.md)。
 
@@ -25,6 +25,8 @@ node --test tests/*.test.mjs
 ```
 
 ## 已实现
+
+- 每条时间任务的开始/结束提醒、默认各提前 5 分钟、独立关闭、权限设置、跨日与修改删除后的调度更新。
 
 - 按日期独立的 24 小时时间规划、复制昨天、跨日、预置名称、自定义自由时间、重叠校验和修改删除。
 
@@ -56,6 +58,7 @@ node --test tests/*.test.mjs
 - [需求与验收规则](docs/requirements.md)
 - [手机使用说明](docs/usage.md)
 - [时间管理说明](docs/time-management.md)
+- [任务提醒说明](docs/reminders.md)
 - [安卓构建与发行](docs/android.md)
 - [数据结构与实现](docs/architecture.md)
 - [开发过程记录](docs/development-log.md)
@@ -69,6 +72,7 @@ node --test tests/*.test.mjs
 - [安卓版 1.4.0 发行说明](docs/releases/v1.4.0.md)
 - [安卓版 1.4.1 发行说明](docs/releases/v1.4.1.md)
 - [安卓版 1.5.0 发行说明](docs/releases/v1.5.0.md)
+- [安卓版 1.6.0 发行说明](docs/releases/v1.6.0.md)
 
 ## 界面预览
 

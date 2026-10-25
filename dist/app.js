@@ -494,12 +494,14 @@ async function install() {
   modal.querySelectorAll('[data-close]').forEach(el => el.onclick = () => modal.close()); modal.showModal();
 }
 function openReminderEntry(date,id) {
+  const entry=state.timeEntries.find(e=>e.id===id);
+  if(!entry){toast('这条安排已修改或删除');return;}
+  date=entry.date;
   if(modal.open && !confirm('当前窗口还未关闭，确定查看提醒安排？'))return;
   if(!leaveDraft())return;
   if(modal.open)modal.close();
   selectedDate=date;calendarMonth=date.slice(0,7);navigate('time');
-  if(state.timeEntries.some(e=>e.id===id))openTimeModal(id);
-  else toast('这条安排已修改或删除');
+  openTimeModal(id);
 }
 window.YiriOpenReminder=openReminderEntry;
 window.YiriReminderPermissionsChanged=()=>reminderUI?.refreshStatus();
