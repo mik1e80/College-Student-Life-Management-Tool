@@ -65,7 +65,7 @@ public final class MainActivity extends Activity {
         }
 
         FrameLayout container = new FrameLayout(this);
-        container.setBackgroundColor(Color.rgb(246, 247, 242));
+        container.setBackgroundColor(Color.WHITE);
         getWindow().setStatusBarColor(Color.TRANSPARENT);
         getWindow().setNavigationBarColor(Color.TRANSPARENT);
         getWindow().getDecorView().setSystemUiVisibility(
@@ -87,7 +87,7 @@ public final class MainActivity extends Activity {
         setContentView(container);
 
         webView = new WebView(this);
-        webView.setBackgroundColor(Color.rgb(246, 247, 242));
+        webView.setBackgroundColor(Color.WHITE);
         container.addView(webView, new FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
         WebSettings settings = webView.getSettings();
@@ -261,9 +261,9 @@ public final class MainActivity extends Activity {
                 runOnUiThread(() -> exportResult(false, "不支持的备份文件类型"));
                 return;
             }
-            String suggested = name == null ? "一日有数-备份" : name.replaceAll("[\\\\/:*?\"<>|\\p{Cntrl}]", "_");
+            String suggested = name == null ? "双衡-备份" : name.replaceAll("[\\\\/:*?\"<>|\\p{Cntrl}]", "_");
             if (suggested.length() > 120) suggested = suggested.substring(0, 120);
-            if (suggested.trim().isEmpty()) suggested = "一日有数-备份";
+            if (suggested.trim().isEmpty()) suggested = "双衡-备份";
             final String safeName = suggested;
             runOnUiThread(() -> beginExport(safeName, mediaType, bytes));
         }

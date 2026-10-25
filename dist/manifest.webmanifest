@@ -1,7 +1,7 @@
 {
-  "id": "/", "name": "一日有数 · 生活与时间管理", "short_name": "一日有数", "lang": "zh-CN",
+  "id": "/", "name": "双衡 · 生活与时间管理", "short_name": "双衡", "lang": "zh-CN",
   "description": "大学生的时间与生活费工具", "start_url": "/", "scope": "/",
-  "display": "standalone", "background_color": "#f6f7f2", "theme_color": "#285b45",
+  "display": "standalone", "background_color": "#ffffff", "theme_color": "#171717",
   "icons": [
     { "src": "./icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
     { "src": "./icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }

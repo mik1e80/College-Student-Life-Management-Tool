@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile, access } from 'node:fs/promises';
 import vm from 'node:vm';
+const version = JSON.parse(await readFile(new URL('../package.json', import.meta.url), 'utf8')).version;
 const source = await readFile(new URL('../dist/sw.js', import.meta.url), 'utf8');
 function worker({ fetchImpl = async () => { throw Error('offline'); }, matches = {}, names = [] } = {}) {
   const listeners = {}, added = [], deleted = [], saved = [];
@@ -41,7 +42,7 @@ test('worker never intercepts cross-origin requests or writes', () => {
   assert.equal(intercepted, 0);
 });
 test('activation preserves unrelated application caches', async () => {
-  const w = worker({ names: ['yiri-v0.9.0', 'yiri-v1.4.1', 'another-app-v1'] }); let pending;
+  const w = worker({ names: ['yiri-v0.9.0', `yiri-v${version}`, 'another-app-v1'] }); let pending;
   w.listeners.activate({ waitUntil: promise => { pending = promise; } }); await pending;
   assert.deepEqual(w.deleted, ['yiri-v0.9.0']);
 });

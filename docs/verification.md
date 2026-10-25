@@ -109,3 +109,9 @@ APK 版本 1.3.0 / versionCode 5，949948 字节，v2 / v3 签名有效，证书
 [安卓工作流](https://github.com/mik1e80/College-Student-Life-Management-Tool/actions/runs/40192300518) build / smoke 均 success，源码 `985f3f2ff64702a814222775e5e776b77a5216ae`。验证明确选次日结束、保存重开回显、两处凌晨选项移除，以及旧财务、分类、复制、离线原子保存和立即强停后记录恢复全部通过。
 
 正式包 1.4.1 / versionCode 7，958273 字节，沿用原证书且 v2 / v3 有效。SHA-256 `249ac88c90676a7e8595825f835fd9993ddc40f6f2ad69caf19e47fa6c5f296b`。包内四个脚本与测试源码一致，元数据、大小、哈希和 sidecar 校验通过。
+
+## 1.5.0 双衡与黑白界面
+
+56 项单元测试通过。浏览器读取实际样式：页面背景 rgb(255,255,255)、正文 rgb(32,32,32)、主按钮 rgb(23,23,23)、分类装饰 rgb(242,242,242)；自由时间 rgb(40,91,69)，未规划 rgb(164,60,50)。手机首页、预算和统计均无横向溢出，旧测试账目及跨日时间继续显示。
+
+截图：[首页](screenshots/home-shuangheng-1.5.0.png)、[预算](screenshots/plan-shuangheng-1.5.0.png)。

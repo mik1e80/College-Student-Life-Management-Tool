@@ -1,12 +1,12 @@
-# 一日有数 · 大学生生活管理
+# 双衡 · 大学生生活管理
 
 大学生生活管理工具，提供安卓 APK 和手机网页版本。安卓包内置账本页面，安装后可离线使用，不需要 Google Play 服务。
 
-**[下载安卓版 APK](https://github.com/mik1e80/College-Student-Life-Management-Tool/releases/download/v1.4.1/yiri-1.4.1.apk)** · [GitHub 版本页面](https://github.com/mik1e80/College-Student-Life-Management-Tool/releases/tag/v1.4.1) · Android 8.0 及以上、可正常工作的现代系统 WebView。
+**[下载安卓版 APK](https://github.com/mik1e80/College-Student-Life-Management-Tool/releases/download/v1.5.0/yiri-1.5.0.apk)** · [GitHub 版本页面](https://github.com/mik1e80/College-Student-Life-Management-Tool/releases/tag/v1.5.0) · Android 8.0 及以上、可正常工作的现代系统 WebView。
 
-1.4.1 新增明确的结束日期：25 日 22:00 至 26 日 07:00 可直接选择。移除两个凌晨选项，精简页面重复说明，保留时间规划与原生活费。覆盖安装请勿先卸载。
+1.5.0 更名为「双衡」，使用全新黑白图标与白底、黑字、黑色按钮。保留自由时间绿色、未规划红色和收支差值颜色。沿用原签名，直接覆盖安装，旧账本与时间安排保留。
 
-**[打开一日有数](https://campus-life-yiri-20261025.my-team-1261.chatgpt.site)** · 公开访问，无需登录。手机安装说明见 [使用说明](docs/usage.md)。
+**[打开双衡](https://campus-life-yiri-20261025.my-team-1261.chatgpt.site)** · 公开访问，无需登录。手机安装说明见 [使用说明](docs/usage.md)。
 
 安卓安装：用手机浏览器下载 `.apk`，在下载列表中打开，按系统提示安装。「Source code」压缩包是源码，不是安装包。网页与安卓应用的账本分别保存，不会自动迁移。
 
@@ -68,6 +68,7 @@ node --test tests/*.test.mjs
 - [安卓版 1.3.0 发行说明](docs/releases/v1.3.0.md)
 - [安卓版 1.4.0 发行说明](docs/releases/v1.4.0.md)
 - [安卓版 1.4.1 发行说明](docs/releases/v1.4.1.md)
+- [安卓版 1.5.0 发行说明](docs/releases/v1.5.0.md)
 
 ## 界面预览
 

@@ -1,4 +1,4 @@
-# 一日有数 Android 离线版
+# 双衡 Android 离线版
 
 1.4.0 新增应用私有原子账本文件。确认保存前会同步写盘，避免 WebView localStorage 尚未落盘时立即结束进程导致最后几笔丢失。原 localStorage 继续作为镜像，旧版账本可按 revision 迁移并保留；不新增联网或广泛存储权限。
 
@@ -8,9 +8,9 @@
 
 | 项目 | 当前设定 |
 | --- | --- |
-| 应用名 | 一日有数 |
+| 应用名 | 双衡 |
 | applicationId | `cn.yiriyoushu.campuslife` |
-| versionName / versionCode | `1.4.1` / `7` |
+| versionName / versionCode | `1.5.0` / `8` |
 | 系统下限 | Android 8.0 / API 26 |
 | 编译 / 目标 SDK | API 35 |
 | Android Gradle Plugin | `8.7.3` |

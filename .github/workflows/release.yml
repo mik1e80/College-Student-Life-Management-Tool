@@ -62,7 +62,7 @@ jobs:
         run: |
           set -euo pipefail
           tag="v$APP_VERSION"
-          title="一日有数 $tag · 安卓安装包"
+          title="双衡 $tag · 安卓安装包"
           notes="docs/releases/$tag.md"
           test -s "$notes"
           if ! gh release view "$tag" --json tagName > /dev/null 2>&1; then
