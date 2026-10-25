@@ -94,7 +94,7 @@ test('old schema migrates without changing budget cents, record cents, dates, or
   saveActual(old, 'meal-0', '2026-10-20', 950, '2026-10-20');
   old.schema = 1; delete old.cadences; delete old.periodPlans; delete old.periodRecords;
   const upgraded = readState(JSON.stringify(old));
-  assert.equal(upgraded.schema, 2);
+  assert.equal(upgraded.schema, 3);
   assert.deepEqual(upgraded.records, old.records); assert.deepEqual(upgraded.plans, old.plans);
   assert.equal(getUnit(upgraded, 'meal-0', '2026-10-20'), 'day');
   assert.throws(() => saveActual(upgraded, 'meal-0', '2026-10-20', 1, '2026-10-25'));

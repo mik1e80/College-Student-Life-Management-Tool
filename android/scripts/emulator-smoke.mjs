@@ -90,7 +90,7 @@ try {
   await screenshot('03-category');
 
   // Mimic an installed 1.1.0 ledger before restarting the upgraded app.
-  await client.evaluate("(() => { const old = JSON.parse(localStorage.getItem('yiri-campus-life-v1')); old.schema=1; delete old.cadences; delete old.periodPlans; delete old.periodRecords; localStorage.setItem('yiri-campus-life-v1',JSON.stringify(old)); return true; })()");
+  await client.evaluate("(() => { const old = JSON.parse(localStorage.getItem('yiri-campus-life-v1')); old.schema=1; delete old.cadences; delete old.periodPlans; delete old.periodRecords; delete old.timeEntries; localStorage.setItem('yiri-campus-life-v1',JSON.stringify(old)); return true; })()");
 
   client.close();
   adb('shell', 'am', 'force-stop', app);
@@ -105,7 +105,7 @@ try {
   await client.evaluate("document.querySelector('.mobile-nav [data-nav=\"plan\"]').click(); true");
   await until("!!document.querySelector('#plan-form')", 'Monthly plan screen opens');
   await client.evaluate("(() => { const values = ['8','30','120'], units=['day','month','year']; document.querySelectorAll('[data-plan-item]').forEach((input,i) => { input.value=values[i]; input.dispatchEvent(new Event('input',{bubbles:true})); const select = document.querySelector('[data-plan-unit=\"'+input.dataset.planItem+'\"]'); select.value=units[i]; select.dispatchEvent(new Event('change',{bubbles:true})); }); document.querySelector('#plan-form').requestSubmit(); return true; })()");
-  await until("(() => { const s=JSON.parse(localStorage.getItem('yiri-campus-life-v1')); return s.schema===2 && Object.keys(s.plans).length===1 && Object.keys(s.periodPlans).length===2; })()", 'Daily, monthly and yearly budgets save with automatic old-ledger migration');
+  await until("(() => { const s=JSON.parse(localStorage.getItem('yiri-campus-life-v1')); return s.schema===3 && Object.keys(s.plans).length===1 && Object.keys(s.periodPlans).length===2; })()", 'Daily, monthly and yearly budgets save with automatic old-ledger migration');
   assert.equal(await client.evaluate("Object.values(JSON.parse(localStorage.getItem('yiri-campus-life-v1')).records).some(r=>r.cents===850)"),true);
   report.push('Old daily expense survives schema migration');
   await screenshot('04-month-plan');
@@ -194,6 +194,40 @@ try {
   await client.evaluate("document.querySelector('.mobile-nav [data-nav=\"settings\"]').click(); true");
   await until("document.body.innerText.includes('安卓版已安装')", 'Native app replaces browser-install instructions');
   await screenshot('06-settings');
+
+  await client.evaluate("document.querySelector('.mobile-nav [data-nav=\"time\"]').click(); const input=document.querySelector('#time-date'); input.value=JSON.parse(localStorage.getItem('yiri-campus-life-v1')).createdOn; input.dispatchEvent(new Event('change',{bubbles:true})); true");
+  await until("document.querySelector('[data-time-gap]').dataset.timeGap==='1440'", 'New time planner shows the entire unplanned day');
+  async function addTime(title,start,end) {
+    await client.evaluate("document.querySelector('[data-action=\"add-time\"]').click(); true");
+    await until("!!document.querySelector('#time-form')", `Time editor opens for ${title}`);
+    await client.evaluate(`(() => { const form=document.querySelector('#time-form'); const preset=form.querySelector('[data-time-preset="${title}"]'); if(preset)preset.click(); else form.querySelector('#time-title').value=${JSON.stringify(title)}; form.querySelector('#time-start-midnight').checked=${start==='24:00'}; form.querySelector('#time-end-midnight').checked=${end==='24:00'}; form.querySelector('#time-start').value=${JSON.stringify(start==='24:00'?'00:00':start)}; form.querySelector('#time-end').value=${JSON.stringify(end==='24:00'?'00:00':end)}; form.dispatchEvent(new Event('change',{bubbles:true})); form.requestSubmit(); return true; })()`);
+    await until("!document.querySelector('#modal').open", `${title} time range saves`);
+  }
+  await addTime('睡觉','00:00','07:00');
+  await addTime('自由时间','12:00','13:00');
+  assert.equal(await client.evaluate("document.querySelectorAll('[data-time-kind=\"free\"]').length"),1);
+  await client.evaluate("document.querySelector('[data-action=\"add-time\"]').click(); document.querySelector('[data-time-preset=\"吃饭时间\"]').click(); document.querySelector('#time-end-midnight').checked=false; document.querySelector('#time-start').value='06:00'; document.querySelector('#time-end').value='08:00'; document.querySelector('#time-form').dispatchEvent(new Event('change',{bubbles:true})); document.querySelector('#time-form').requestSubmit(); true");
+  await until("document.querySelector('#time-error').textContent.includes('重叠')", 'Overlapping time is rejected without closing the editor');
+  await client.evaluate("document.querySelector('#time-start').value='07:00'; document.querySelector('#time-form').requestSubmit(); true");
+  await until("!document.querySelector('#modal').open", 'An adjusted adjacent meal time saves');
+  await addTime('睡觉','23:00','07:00');
+  await screenshot('11-day-timeline');
+  await client.evaluate("document.querySelector('[data-time-kind=\"free\"] [data-time-edit]').click(); document.querySelector('#time-title').value='午间休息'; document.querySelector('#time-form').requestSubmit(); true");
+  await until("JSON.parse(localStorage.getItem('yiri-campus-life-v1')).timeEntries.some(e=>e.title==='午间休息' && e.kind==='free')", 'Custom title retains the explicit free-time designation');
+  await client.evaluate("document.querySelector('[data-time-shift=\"1\"]').click(); true");
+  await until("document.querySelector('#time-timeline').textContent.includes('接上日')", 'Overnight sleep carries into the next date');
+  await client.evaluate("document.querySelector('[data-action=\"copy-time\"]').click(); true");
+  await until("JSON.parse(localStorage.getItem('yiri-campus-life-v1')).timeEntries.length===7", 'Copy yesterday reuses identical overnight sleep and adds only missing daily segments');
+  await client.evaluate("document.querySelector('[data-action=\"copy-time\"]').click(); true");
+  await until("document.querySelector('#toast').textContent.includes('没有重复')", 'Copying again does not duplicate events');
+  await client.evaluate("document.querySelector('[data-time-kind=\"free\"] [data-time-edit]').click(); document.querySelector('#delete-time').click(); document.querySelector('#confirm-time-delete').click(); true");
+  await until("!document.querySelector('#modal').open && JSON.parse(localStorage.getItem('yiri-campus-life-v1')).timeEntries.length===6", 'Time entries may be deleted and their slots become unplanned');
+  assert.equal(await client.evaluate("Object.values(JSON.parse(localStorage.getItem('yiri-campus-life-v1')).records).some(r=>r.cents===850)"),true);
+  client.close(); adb('shell','am','force-stop',app); adb('shell','am','start','-n',`${app}/.MainActivity`); client=await connect();
+  await until("!!document.querySelector('#time-timeline') && !!document.querySelector('[data-category]')", 'Home combines the full time overview and expense categories');
+  assert.equal(await client.evaluate("JSON.parse(localStorage.getItem('yiri-campus-life-v1')).timeEntries.length"),6);
+  await screenshot('12-combined-home');
+  report.push('Time planner presets, free/gap colors, overlap protection, cross-midnight view, copying, editing, deletion and offline restart all pass');
 
   await client.evaluate("window.__exportResult = null; const original = window.YiriNativeExportResult; window.YiriNativeExportResult = (ok, message) => { window.__exportResult = {ok, message}; original?.(ok, message); }; AndroidApp.saveText('oversized.json', 'application/json', 'x'.repeat(1048577)); true");
   await until("window.__exportResult?.ok === false && window.__exportResult.message.includes('1 MiB')", 'Native export rejects content larger than 1 MiB');

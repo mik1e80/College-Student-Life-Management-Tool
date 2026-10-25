@@ -1,4 +1,5 @@
-export const SCHEMA = 2;
+import { validateTimeEntries } from './time-core.js';
+export const SCHEMA = 3;
 export const UNITS = ['day', 'month', 'year'];
 export const UNIT_LABELS = { day: '天', month: '月', year: '年' };
 export const MAX_CENTS = 99999999;
@@ -61,7 +62,7 @@ export function createState(today = dateKey()) {
       ['health', '医疗健康', 'heart', '#fae7e0'], ['other', '其他与备用金', 'box', '#eeeee7']
     ].map(([id, name, icon, color]) => ({ id, name, icon, color, createdOn: today })),
     items: ['早餐', '午餐', '晚餐'].map((name, i) => ({ id: `meal-${i}`, categoryId: 'food', name, createdOn: today })),
-    plans: {}, records: {}, cadences: {}, periodPlans: {}, periodRecords: {}
+    plans: {}, records: {}, cadences: {}, periodPlans: {}, periodRecords: {}, timeEntries: []
   };
 }
 export function addCategory(state, rawName, today = dateKey()) {
@@ -207,8 +208,11 @@ export function summarize(state, dates, { categoryId, itemId } = {}) {
 }
 export function readState(raw) {
   const s = JSON.parse(raw);
-  if (![1, SCHEMA].includes(s?.schema) || !Number.isSafeInteger(s.revision) || !validDate(s.createdOn) || !Array.isArray(s.categories) || !Array.isArray(s.items) || !s.plans || typeof s.plans !== 'object' || !s.records || typeof s.records !== 'object') throw Error('数据格式不正确');
-  if (s.schema === 1) { s.schema = SCHEMA; s.cadences = {}; s.periodPlans = {}; s.periodRecords = {}; }
+  if (![1, 2, SCHEMA].includes(s?.schema) || !Number.isSafeInteger(s.revision) || !validDate(s.createdOn) || !Array.isArray(s.categories) || !Array.isArray(s.items) || !s.plans || typeof s.plans !== 'object' || !s.records || typeof s.records !== 'object') throw Error('数据格式不正确');
+  if (s.schema === 1) { s.cadences = {}; s.periodPlans = {}; s.periodRecords = {}; }
+  if (!Object.hasOwn(s, 'timeEntries') && s.schema !== SCHEMA) s.timeEntries = [];
+  s.schema = SCHEMA;
+  validateTimeEntries(s.timeEntries);
   for (const value of [s.cadences, s.periodPlans, s.periodRecords]) if (!value || typeof value !== 'object' || Array.isArray(value)) throw Error('周期数据不正确');
   if (s.categories.some(x => !x.id || !x.name || !validDate(x.createdOn)) || s.items.some(x => !x.id || !x.name || !validDate(x.createdOn) || !s.categories.some(c => c.id === x.categoryId))) throw Error('分类数据不正确');
   for (const changes of Object.values(s.cadences)) {

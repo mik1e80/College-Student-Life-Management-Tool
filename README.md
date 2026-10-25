@@ -1,10 +1,10 @@
-# 一日有数 · 大学生生活费管理
+# 一日有数 · 大学生生活管理
 
-大学生生活费管理工具，提供安卓 APK 和手机网页版本。安卓包内置账本页面，安装后可离线使用，不需要 Google Play 服务。
+大学生生活管理工具，提供安卓 APK 和手机网页版本。安卓包内置账本页面，安装后可离线使用，不需要 Google Play 服务。
 
-**[下载安卓版 APK](https://github.com/mik1e80/College-Student-Life-Management-Tool/releases/download/v1.3.0/yiri-1.3.0.apk)** · [GitHub 版本页面](https://github.com/mik1e80/College-Student-Life-Management-Tool/releases/tag/v1.3.0) · Android 8.0 及以上、可正常工作的现代系统 WebView。
+**[下载安卓版 APK](https://github.com/mik1e80/College-Student-Life-Management-Tool/releases/download/v1.4.0/yiri-1.4.0.apk)** · [GitHub 版本页面](https://github.com/mik1e80/College-Student-Life-Management-Tool/releases/tag/v1.4.0) · Android 8.0 及以上、可正常工作的现代系统 WebView。
 
-1.3.0 新增分类管理：大类、小类可改名，没有任何实际金额记录的分类可删除。改名保留原预算和账目；0 元也属于已记录。保留连续添加小类、天 / 月 / 年预算与实际功能。使用同一签名覆盖安装可保留账本，请勿先卸载。
+1.4.0 新增每天独立的时间规划与复制昨天。首页同时显示 24 小时时间线和生活费，全部空档红色、自由时间绿色，提供睡觉／自由时间／吃饭时间名称，支持跨日、修改和删除。旧账本保留，覆盖升级请勿先卸载。
 
 **[打开一日有数](https://campus-life-yiri-20261025.my-team-1261.chatgpt.site)** · 公开访问，无需登录。手机安装说明见 [使用说明](docs/usage.md)。
 
@@ -26,6 +26,8 @@ node --test tests/*.test.mjs
 
 ## 已实现
 
+- 按日期独立的 24 小时时间规划、复制昨天、跨日、预置名称、自定义自由时间、重叠校验和修改删除。
+
 - 八个初始大类，餐饮自带早、午、晚餐。三列九宫格排列，可添加和改名；没有实际记录的分类可删除，有记录（含 0 元）时保留。
 - 每项选择按天、月或年设置预算与实际；月预算每月独立，年预算同年共用。
 - 金额以整数分存储；未设置、未记录和 0 元分别处理。
@@ -43,7 +45,7 @@ node --test tests/*.test.mjs
 
 当前月首次制定计划从当天生效，之前的预算显示未设置。未来月份单独制定，未自动沿用上月。分类只能从创建日开始记账。统计不把未记金额视为零；未设预算的支出计入实际总额，但不计入预算差值。
 
-原对话助手计划正文未能从引用中取出，本版依据可读取的用户需求、最终确认及三张附图实现。时间管理、云同步暂留后续。
+原对话助手计划正文未能从引用中取出，本版依据可读取的用户需求、最终确认及三张附图实现。云同步暂留后续。
 
 ## 发布
 
@@ -53,6 +55,7 @@ node --test tests/*.test.mjs
 
 - [需求与验收规则](docs/requirements.md)
 - [手机使用说明](docs/usage.md)
+- [时间管理说明](docs/time-management.md)
 - [安卓构建与发行](docs/android.md)
 - [数据结构与实现](docs/architecture.md)
 - [开发过程记录](docs/development-log.md)
@@ -63,6 +66,7 @@ node --test tests/*.test.mjs
 - [安卓版 1.2.0 发行说明](docs/releases/v1.2.0.md)
 - [安卓版 1.2.1 发行说明](docs/releases/v1.2.1.md)
 - [安卓版 1.3.0 发行说明](docs/releases/v1.3.0.md)
+- [安卓版 1.4.0 发行说明](docs/releases/v1.4.0.md)
 
 ## 界面预览
 

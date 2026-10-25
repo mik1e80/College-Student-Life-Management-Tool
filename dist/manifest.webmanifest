@@ -1,6 +1,6 @@
 {
-  "id": "/", "name": "一日有数 · 生活费管理", "short_name": "一日有数", "lang": "zh-CN",
-  "description": "大学生的生活费小账本", "start_url": "/", "scope": "/",
+  "id": "/", "name": "一日有数 · 生活与时间管理", "short_name": "一日有数", "lang": "zh-CN",
+  "description": "大学生的时间与生活费工具", "start_url": "/", "scope": "/",
   "display": "standalone", "background_color": "#f6f7f2", "theme_color": "#285b45",
   "icons": [
     { "src": "./icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
