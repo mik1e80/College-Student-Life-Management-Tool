@@ -134,5 +134,6 @@ jobs:
           path: |
             android/smoke-screenshot.png
             android/smoke-report.json
+            android/smoke-failure.json
             android/screenshots/*.png
           if-no-files-found: ignore

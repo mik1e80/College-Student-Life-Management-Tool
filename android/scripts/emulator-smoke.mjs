@@ -79,12 +79,19 @@ try {
   assert.equal(await client.evaluate('location.href'), 'https://appassets.androidplatform.net/assets/index.html');
   assert.equal(await client.evaluate('AndroidApp.isNative()'), true);
   assert.equal(await client.evaluate("typeof window.YiriNativeBack === 'function'"), true);
+  assert.equal(await client.evaluate('document.title'), '双衡 · 生活与时间管理');
+  assert.equal(await client.evaluate('getComputedStyle(document.documentElement).backgroundColor'), 'rgb(255, 255, 255)');
+  assert.equal(await client.evaluate("getComputedStyle(document.querySelector('.hero')).backgroundColor"), 'rgb(23, 23, 23)');
+  report.push('Shuangheng name and monochrome background/hero render in the native WebView');
   await screenshot('01-home');
   await client.evaluate("document.querySelector('[data-category]').click(); document.querySelector('[data-item]').click(); true");
   await until("!!document.querySelector('#actual-input')", 'Expense editor opens through category and item navigation');
   await screenshot('02-detail');
   await client.evaluate("(() => { const input = document.querySelector('#actual-input'); input.value = '8.50'; input.dispatchEvent(new Event('input', {bubbles:true})); document.querySelector('#actual-form').requestSubmit(); return true; })()");
   await until("Object.values(JSON.parse(localStorage.getItem('yiri-campus-life-v1')).records).some(record => record.cents === 850)", 'A real expense entered through the UI is saved');
+  // Persistence completes before the asynchronous form handler resets its draft.
+  // Wait for the user-visible completion before exercising native navigation.
+  await until("document.querySelector('#toast').textContent.startsWith('已保存') && document.querySelector('#actual-input')?.value==='8.50'", 'The expense form has completed saving before System Back');
   adb('shell', 'input', 'keyevent', '4');
   await until("!document.querySelector('#actual-form') && !!document.querySelector('[data-item]')", 'System Back returns from detail to the category');
   await screenshot('03-category');
@@ -244,6 +251,11 @@ try {
   await writeFile('android/smoke-report.json', JSON.stringify({ passed: true, checks: report }, null, 2));
   console.log(report.map(item => `PASS: ${item}`).join('\n'));
 } catch (error) {
+  try {
+    await screenshot('failure');
+    const page = await client?.evaluate("JSON.stringify({title:document.title,text:document.body.innerText,active:document.activeElement?.outerHTML})");
+    await writeFile('android/smoke-failure.json', JSON.stringify({page, activity:adb('shell','dumpsys','activity','activities')},null,2));
+  } catch { /* Preserve the original failure if the emulator disconnected. */ }
   await writeFile('android/smoke-report.json', JSON.stringify({ passed: false, checks: report, error: error.message }, null, 2));
   throw error;
 } finally {
