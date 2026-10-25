@@ -50,3 +50,13 @@ Android 35 模拟器检查 debug 包在关闭 Wi-Fi 和移动数据后首次打�
 unsigned release 下载到本机后单独签名。Google apksig 8.7.3 返回 verified=true，v2 / v3 有效；发布文件大小 945852 字节，SHA-256 `4be20a6e3c5b4a5db078fb1bf9d71a8530ba39d58b2058e00b9337ff71598a57`。`node scripts/verify-release.mjs` 核对元数据、大小、哈希和 sidecar 通过。发行流程还会独立用 Android SDK apksigner 验证实际签名。
 
 模拟器验证不等同于实体手机验证。未在大陆运营商网络实测 GitHub 下载表现；用户已接受使用 GitHub Releases 发布。
+
+## 1.2.0 周期与升级
+
+28 项单元测试全部通过，包含 10 项新增周期测试：月费不乘天数、年度合计不重复、闰年分配精确到分、当前月/年可调整、跨周期锁定、历史零元只补录一次、旧 schema 保留、已填实际不允许改周期以及未来生效周期不可提前记录。
+
+[构建与模拟器检查](https://github.com/mik1e80/College-Student-Life-Management-Tool/actions/runs/40170744177)中 build / smoke 均成功。测试把现有日账本转成旧 schema 1 后重启，再通过界面保存天/月/年预算，确认自动升级且旧金额保留；同一月另选日期仍为同一实际记录，年度实际及年度报告也可使用。
+
+本地手机窄屏界面：视频会员预算 30 元/月、实际 29 元，差值 +1 元；10 月 25 日切换到 26 日仍显示同一条 29 元记录。网盘预算 120 元/年、实际 118 元，差值 +2 元。未捕获到浏览器控制台错误。截图见 [月周期记录](screenshots/monthly-cycle-1.2.png)。这些均为开发测试数据，不进入正式 APK。
+
+1.2.0 / versionCode 3 使用与 1.1.0 相同的发行证书。APK 为 945852 字节，SHA-256 `55bbf93af8eba45fafca55ed46a585182a0d144350a577241f9d42648c7688b6`，v2 / v3 签名验证成功。覆盖安装保留应用本地存储，禁止先卸载后升级。

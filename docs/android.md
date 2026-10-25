@@ -8,7 +8,7 @@
 | --- | --- |
 | 应用名 | 一日有数 |
 | applicationId | `cn.yiriyoushu.campuslife` |
-| versionName / versionCode | `1.1.0` / `2` |
+| versionName / versionCode | `1.2.0` / `3` |
 | 系统下限 | Android 8.0 / API 26 |
 | 编译 / 目标 SDK | API 35 |
 | Android Gradle Plugin | `8.7.3` |
@@ -37,7 +37,7 @@ gradle -p android --no-daemon assembleRelease
 
 ## 自动构建与设备检查
 
-[Android 构建工作流](../.github/workflows/android.yml)在相关源码变更或手动触发时执行既有 Node 测试、准备资源、编译 release 并检查 APK 权限，然后上传 `yiri-android-unsigned-1.1.0` artifact。该 artifact 仅供维护者后续签名，下载 artifact 本身通常需要 GitHub 登录；它不应作为面向用户的公开下载地址。
+[Android 构建工作流](../.github/workflows/android.yml)在相关源码变更或手动触发时执行 Node 测试、准备资源、编译 release 并检查 APK 权限，然后按 package.json 中版本号上传 `yiri-android-unsigned-<version>` artifact。该 artifact 仅供维护者后续签名，下载 artifact 本身通常需要 GitHub 登录；它不应作为面向用户的公开下载地址。
 
 推送相关源码时会自动运行设备检查，手动执行工作流时也可勾选 `smoke_test`。这个独立任务在 release artifact 已产出后，使用 Android 35 模拟器检查：
 
@@ -46,6 +46,7 @@ gradle -p android --no-daemon assembleRelease
 - 强制停止并重新启动后，金额仍保留。
 - APK 未注册服务工作线程；超过 1 MiB 的原生导出请求被拒绝。
 - 月计划保存、支出统计和安卓版设置界面均可打开。
+- 旧 schema 1 日账本升级保留金额；月/年实际保存后，选择同月另一日期仍读取同一条记录；年展示可打开。
 
 模拟器任务仅检查 debug 包，调试接口不会在正式 release 中开启。检查脚本位于 `android/scripts/emulator-smoke.mjs`，结果和截图作为独立 artifact 保存。是否通过以实际工作流记录为准，源码包含该流程不代表设备检查已经运行。
 
@@ -73,6 +74,6 @@ gradle -p android --no-daemon assembleRelease
 
 浏览器网页账本与 APK 账本分属不同存储，不会自动共享数据。清除应用数据或卸载应用会移除本机账本，应先从“我的账本”导出 JSON 备份。当前功能是否支持备份导入，以页面说明为准。
 
-用户目前没有云账号和域名，暂不进行国内平台实名认证，并明确接受 GitHub 发布安装包。因此当前入口为 [GitHub Releases](https://github.com/mik1e80/College-Student-Life-Management-Tool/releases/tag/v1.1.0)。不把 GitHub 地址标注为“中国大陆保证可达”；尚未进行大陆手机网络实测。应用安装后的离线使用不依赖下载站点。
+用户目前没有云账号和域名，暂不进行国内平台实名认证，并明确接受 GitHub 发布安装包。因此当前入口为 [GitHub Releases](https://github.com/mik1e80/College-Student-Life-Management-Tool/releases/tag/v1.2.0)。不把 GitHub 地址标注为“中国大陆保证可达”；尚未进行大陆手机网络实测。应用安装后的离线使用不依赖下载站点。
 
-`download-site/` 同时包含 APK、校验信息和独立下载介绍页；发行附件中的 `yiri-download-page-1.1.0.zip` 可解压部署到后续选择的静态托管服务。GitHub Release 由 [发行工作流](../.github/workflows/release.yml) 先校验实际签名与文件哈希再发布，无发行私钥进入 CI。
+`download-site/` 同时包含 APK、校验信息和独立下载介绍页；发行附件中的 `yiri-download-page-<version>.zip` 可解压部署到后续选择的静态托管服务。GitHub Release 由 [发行工作流](../.github/workflows/release.yml) 读取当前版本、校验实际签名与文件哈希后发布，无发行私钥进入 CI。

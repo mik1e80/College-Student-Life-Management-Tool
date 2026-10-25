@@ -2,7 +2,9 @@
 
 大学生生活费管理工具，提供安卓 APK 和手机网页版本。安卓包内置账本页面，安装后可离线使用，不需要 Google Play 服务。
 
-**[下载安卓版 APK](https://github.com/mik1e80/College-Student-Life-Management-Tool/releases/download/v1.1.0/yiri-1.1.0.apk)** · [GitHub 版本页面](https://github.com/mik1e80/College-Student-Life-Management-Tool/releases/tag/v1.1.0) · Android 8.0 及以上、可正常工作的现代系统 WebView。
+**[下载安卓版 APK](https://github.com/mik1e80/College-Student-Life-Management-Tool/releases/download/v1.2.0/yiri-1.2.0.apk)** · [GitHub 版本页面](https://github.com/mik1e80/College-Student-Life-Management-Tool/releases/tag/v1.2.0) · Android 8.0 及以上、可正常工作的现代系统 WebView。
+
+1.2.0 新增每项独立的天 / 月 / 年周期。预算和实际都按所选周期填写：餐饮每日一笔、会员每月一笔、年费每年一笔。周期结束锁定，历史空缺仅可补录一次；旧版每日账本自动兼容。使用同一签名覆盖安装可保留账本，请勿先卸载。
 
 **[打开一日有数](https://campus-life-yiri-20261025.my-team-1261.chatgpt.site)** · 公开访问，无需登录。手机安装说明见 [使用说明](docs/usage.md)。
 
@@ -25,11 +27,11 @@ node --test tests/*.test.mjs
 ## 已实现
 
 - 八个初始大类，餐饮自带早、午、晚餐。三列九宫格排列，可添加大类和小类，不提供删除。
-- 每月单独设置每日预算，修改从当天或未来月份首日生效；用预算版本保留历史，不依赖后台定时任务。
+- 每项选择按天、月或年设置预算与实际；月预算每月独立，年预算同年共用。
 - 金额以整数分存储；未设置、未记录和 0 元分别处理。
-- 今日金额可修改，历史已填金额锁定；历史空缺只可补录一次，保存时再次校验。
+- 本期金额可修改，按天次日锁定、按月下月锁定、按年次年锁定；历史空缺只可补录一次。
 - 预计与实际上下排列，差值使用绿色正数、红色负数和默认颜色零值；下半部日历可查看历史。
-- 日展示、月展示、分类汇总和逐日支出图；差值仅比较预计与实际均有值的记录。
+- 日/月/年展示、分类汇总和支出图；月、年金额按周期生效天数折算，避免重复计费。CSV 每周期只导出一行。
 - 本机存储、跨窗口保存协调、JSON 完整备份和 CSV 明细导出。
 - 离线缓存、手机响应式布局、安装清单与应用图标。
 
@@ -58,6 +60,7 @@ node --test tests/*.test.mjs
 - [发布记录](docs/deployment.md)
 - [版本变更](CHANGELOG.md)
 - [安卓版 1.1.0 发行说明](docs/releases/v1.1.0.md)
+- [安卓版 1.2.0 发行说明](docs/releases/v1.2.0.md)
 
 ## 界面预览
 
