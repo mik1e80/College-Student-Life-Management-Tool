@@ -2,9 +2,9 @@
 
 大学生生活费管理工具，提供安卓 APK 和手机网页版本。安卓包内置账本页面，安装后可离线使用，不需要 Google Play 服务。
 
-**[下载安卓版 APK](https://github.com/mik1e80/College-Student-Life-Management-Tool/releases/download/v1.2.0/yiri-1.2.0.apk)** · [GitHub 版本页面](https://github.com/mik1e80/College-Student-Life-Management-Tool/releases/tag/v1.2.0) · Android 8.0 及以上、可正常工作的现代系统 WebView。
+**[下载安卓版 APK](https://github.com/mik1e80/College-Student-Life-Management-Tool/releases/download/v1.2.1/yiri-1.2.1.apk)** · [GitHub 版本页面](https://github.com/mik1e80/College-Student-Life-Management-Tool/releases/tag/v1.2.1) · Android 8.0 及以上、可正常工作的现代系统 WebView。
 
-1.2.0 新增每项独立的天 / 月 / 年周期。预算和实际都按所选周期填写：餐饮每日一笔、会员每月一笔、年费每年一笔。周期结束锁定，历史空缺仅可补录一次；旧版每日账本自动兼容。使用同一签名覆盖安装可保留账本，请勿先卸载。
+1.2.1 修复预算计划只能添加一次小类的问题：每个大类始终保留添加入口，连续添加时保留未保存的金额和周期。支持每项独立的天 / 月 / 年周期，预算和实际都按所选周期填写。使用同一签名覆盖安装可保留账本，请勿先卸载。
 
 **[打开一日有数](https://campus-life-yiri-20261025.my-team-1261.chatgpt.site)** · 公开访问，无需登录。手机安装说明见 [使用说明](docs/usage.md)。
 
@@ -61,6 +61,7 @@ node --test tests/*.test.mjs
 - [版本变更](CHANGELOG.md)
 - [安卓版 1.1.0 发行说明](docs/releases/v1.1.0.md)
 - [安卓版 1.2.0 发行说明](docs/releases/v1.2.0.md)
+- [安卓版 1.2.1 发行说明](docs/releases/v1.2.1.md)
 
 ## 界面预览
 

@@ -97,7 +97,7 @@ function render() {
   app.innerHTML = `<div class="shell"><aside class="sidebar"><div class="brand"><img src="./icon.svg" alt=""><div><strong>一日有数</strong><small>A LITTLE EVERY DAY</small></div></div><div class="side-caption">MY CAMPUS LIFE</div>${navMarkup()}<div class="side-note"><div class="sprout">${icon('leaf')}</div><p>把生活安排好，<br>也给快乐留一点预算。</p><small>从今天的一笔开始</small></div><div class="side-footer"><span class="dot"></span>你的生活，慢慢有数</div></aside><main class="main"><header class="topbar"><span class="top-breadcrumb">我的校园生活&nbsp; / &nbsp;${esc(name)}</span><div class="mobile-brand"><img src="./icon.svg" alt="">一日有数</div><div class="right"><span>${esc(dateLabel(today))}</span><span class="device-label">本机账本</span><span class="avatar" aria-label="学生账本">同学</span></div></header>${view === 'home' ? home() : view === 'category' ? categoryPage() : view === 'detail' ? detail() : view === 'plan' ? planPage() : view === 'report' ? report() : settings()}<footer class="bottom-note">${icon('leaf')}认真生活的每一笔，都算数。</footer></main>${navMarkup(true)}</div>`;
   if (isAndroidApp && view === 'settings') {
     const installPanel = app.querySelector('[data-action="install"]')?.closest('section');
-    if (installPanel) installPanel.innerHTML = `<h2>${icon('phone')}安卓版已安装</h2><p>已安装一日有数 1.2.0。记账、月计划与统计均可离线使用，不依赖下载网站。</p><p class="stat-foot">数据保存在本应用中；卸载或清除应用数据会删除账本，请定期导出备份。网页账本与安卓应用数据独立保存。</p>`;
+    if (installPanel) installPanel.innerHTML = `<h2>${icon('phone')}安卓版已安装</h2><p>已安装一日有数 1.2.1。记账、月计划与统计均可离线使用，不依赖下载网站。</p><p class="stat-foot">数据保存在本应用中；卸载或清除应用数据会删除账本，请定期导出备份。网页账本与安卓应用数据独立保存。</p>`;
   }
   bind();
 }
@@ -175,7 +175,7 @@ function planPage() {
       const cycleLocked = getRecord(state, item.id, effective) !== null;
       const history = [...new Set(datesInMonth(planMonth).filter(d => itemExists(state, item.id, d)).map(d => { const value = getPlan(state, item.id, d); return value === null ? null : `${money(value)} 元/${UNIT_LABELS[getUnit(state, item.id, d)]}`; }).filter(Boolean))].join(' · ') || '未设置';
       return `<div class="plan-row cycle-row"><label for="plan-${esc(item.id)}">${esc(item.name)}<small data-plan-hint="${esc(item.id)}">${locked ? '历史预算与周期' : `${unit === 'day' ? '每天' : unit === 'month' ? '每月' : '每年'}填写一笔实际${cycleLocked ? ' · 本期已有记录，周期下期可改' : ''}`}</small></label><div class="input-wrap">${locked ? `<span class="plan-history">${esc(history)}</span>` : `<span>¥</span><input id="plan-${esc(item.id)}" name="${esc(item.id)}" inputmode="decimal" data-plan-item="${esc(item.id)}" value="${amountInput(p)}" placeholder="未设置" autocomplete="off" aria-label="${esc(item.name)}预计金额"><select data-plan-unit="${esc(item.id)}" aria-label="${esc(item.name)}计费周期" ${cycleLocked ? 'disabled' : ''}>${UNITS.map(value => `<option value="${value}" ${value === unit ? 'selected' : ''}>按${UNIT_LABELS[value]}</option>`).join('')}</select>`}</div></div>`;
-    }).join('') : `<div class="empty-group"><span>还没有消费小类</span><button class="text-button" type="button" data-plan-add="${esc(c.id)}">+ 添加小类</button></div>`}</section>`;
+    }).join('') : ''}${!locked ? `<div class="empty-group">${!items.length ? '<span>还没有消费小类</span>' : ''}<button class="text-button" type="button" data-plan-add="${esc(c.id)}">+ 添加小类</button></div>` : ''}</section>`;
   }).join('')}${!locked ? `<div class="sticky-save"><small>新周期从 ${esc(effective)} 生效，旧记录保留。</small><button class="btn primary" type="submit">${icon('check')}保存预算计划</button></div>` : ''}</form>
   <p class="stat-foot">日/月统计把月、年金额按该周期生效天数分摊，分为单位分配，合计保持原金额。详情中直接比较整期预算与整期实际；同一年内修改年预算会更新该年的预算。</p></div>`;
 }
@@ -191,7 +191,7 @@ function report() {
   return `${heading('YOUR MONEY, AT A GLANCE', '每一笔，都看得见。', '看看钱花在哪里，也看看自己怎样生活。', `<div class="switch"><button data-report-mode="day" class="${reportMode === 'day' ? 'active' : ''}">日展示</button><button data-report-mode="month" class="${reportMode === 'month' ? 'active' : ''}">月展示</button><button data-report-mode="year" class="${reportMode === 'year' ? 'active' : ''}">年展示</button></div>`)}<div class="wide"><div class="plan-bar">${reportMode !== 'day' ? `<div class="month-picker"><button class="icon-btn" data-report-shift="-1" aria-label="上个月统计">${icon('left')}</button><strong>${reportMode === 'year' ? reportMonth.slice(0, 4) + ' 年' : monthLabel(reportMonth)}</strong><button class="icon-btn" data-report-shift="1" aria-label="下个月统计">${icon('chevron')}</button></div>` : `<input class="inline-date" type="date" id="report-date" value="${selectedDate}" aria-label="统计日期">`}<button class="btn small ghost" data-action="export-csv">${icon('download')}导出明细</button></div><div class="stats-top"><div class="stat-box"><div class="stat-label">折算预计 ${icon('book')}</div><div class="stat-value">${sum.plannedCells ? money(sum.planned) : '— —'}<small>元</small></div><div class="stat-foot">${reportMode === 'year' ? '全年各周期预算合计' : '月/年项目按生效天数折算'}</div></div><div class="stat-box"><div class="stat-label">折算实际 ${icon('wallet')}</div><div class="stat-value">${sum.recorded ? money(sum.actual) : '— —'}<small>元</small></div><div class="stat-foot">${sum.recorded} 个周期已有实际记录</div></div><div class="stat-box"><div class="stat-label">已记项目结余 ${icon('leaf')}</div><div class="stat-value ${sum.pairedCells ? color(sum.difference) : ''}">${sum.pairedCells ? signed(sum.difference) : '— —'}</div><div class="stat-foot">仅比较已填写的周期，月/年项目按天折算</div></div></div><div class="alert">${icon('info')}<span>${due.expected - due.recorded > 0 ? `截至${reportMode === 'day' ? '所选日期' : '今天或期末'}，还有 ${due.expected - due.recorded} 个周期未记录实际金额。未记录不代表 0 元，结余仅供参考。` : due.expected ? '所选期间应记项目均已填写。' : '所选期间没有应记项目。'}${sum.plannedCells < sum.expected ? ' 部分项目尚未设置预算。' : ''}</span></div><section class="panel report-section"><h2>花在生活的哪里</h2>${categorySums.map(c => `<div class="report-row"><div class="cat-label">${icon(c.icon)}<span>${esc(c.name)}</span></div><div><div class="bar-track"><div class="bar-fill" style="width:${sum.actual ? c.sum.actual / sum.actual * 100 : 0}%"></div></div><small>${c.sum.recorded ? `${c.sum.recorded} 项已记 · 占 ${sum.actual ? (c.sum.actual / sum.actual * 100).toFixed(1) : '0'}%` : '暂无记录'}</small></div><div class="report-amount">${c.sum.recorded ? `¥ ${money(c.sum.actual)}` : '— —'}</div></div>`).join('')}</section>${reportMode === 'month' ? `<section class="panel report-section"><h2>这个月的支出节奏</h2><div class="report-days" role="img" aria-label="${esc(monthLabel(reportMonth))}每日实际支出柱状图">${daily.map((d, i) => `<div class="report-day" title="${monthDays[i]}：${d.recorded ? money(d.actual) + ' 元' : '未记录'}"><div class="bar" style="height:${d.actual / maxDaily * 110}px;opacity:${d.recorded ? 1 : .2}"></div><span>${i === 0 || (i + 1) % 5 === 0 || i === daily.length - 1 ? i + 1 : ''}</span></div>`).join('')}</div><p class="stat-foot">柱状图仅显示已记录支出；完整逐日金额可通过「导出明细」查看。</p></section>` : ''}</div>`;
 }
 function settings() {
-  return `${heading('A LITTLE SPACE OF YOUR OWN', '你的生活小账本', '规则简单一点，记录认真一点。')}<div class="settings-grid wide"><section class="panel"><h2>${icon('phone')}放进手机主屏幕</h2><p>安装后像普通应用一样打开，首次联网加载完成后，也可以离线记账。</p><button class="btn primary" data-action="install">${icon('plus')}安装 / 查看安装方法</button><p class="stat-foot">手机请打开正式 HTTPS 地址。部分内置浏览器需转到系统浏览器安装。</p></section><section class="panel"><h2>${icon('download')}给记录留一份备份</h2><p>数据保存在当前设备、当前浏览器中，暂不跨设备同步。清理浏览器数据会清除账本，建议定期导出保存。</p><button class="btn" data-action="export-json">${icon('download')}下载完整备份 JSON</button><p class="stat-foot">备份包含分类、预算版本及金额记录。本版暂未提供备份导入。</p></section><section class="panel full"><h2>${icon('lock')}我们约好的记账规则</h2><ol><li>八个常用大类默认建立，餐饮自带早餐、午餐、晚餐。大类和小类都可添加，建立后不提供删除。</li><li>每项独立选择按天、月或年。日预算按月制定，月预算各月独立，年预算整年共用。周期选择会保留旧日期记录；本期已有实际金额时，周期须在下期更改。</li><li>本期金额可调整。按天项目次日锁定，按月项目下月锁定，按年项目次年锁定；同一月/年只保留一条实际记录。</li><li>历史周期未填的实际金额，可以补录一次。提交前需要核对，保存后立即锁定，0 元也算一次有效记录。</li><li>差值 = 预计 − 实际。节余为带加号的绿色数字，超支为红色负数，0 元使用默认颜色。</li><li>未记录与 0 元分开显示。日/月/年统计按生效天数分摊月、年金额；整期合计等于填写金额，差值只比较预算与实际均有值的周期。</li></ol><p class="stat-foot">这是本地个人账本。锁定限制由应用按设备日期执行，不能防止手动修改浏览器存储或设备时间。时间管理功能留待后续版本。</p></section><section class="panel full"><h2>${icon('leaf')}一日有数 <span class="tag">1.1.0</span></h2><p>从每一天的小计划开始，慢慢找到适合自己的生活节奏。</p><span class="saving-status">当前有 ${state.categories.length} 个大类、${state.items.length} 个小类、${Object.keys(state.records).length + Object.keys(state.periodRecords).length} 条实际金额记录。</span></section></div>`;
+  return `${heading('A LITTLE SPACE OF YOUR OWN', '你的生活小账本', '规则简单一点，记录认真一点。')}<div class="settings-grid wide"><section class="panel"><h2>${icon('phone')}放进手机主屏幕</h2><p>安装后像普通应用一样打开，首次联网加载完成后，也可以离线记账。</p><button class="btn primary" data-action="install">${icon('plus')}安装 / 查看安装方法</button><p class="stat-foot">手机请打开正式 HTTPS 地址。部分内置浏览器需转到系统浏览器安装。</p></section><section class="panel"><h2>${icon('download')}给记录留一份备份</h2><p>数据保存在当前设备、当前浏览器中，暂不跨设备同步。清理浏览器数据会清除账本，建议定期导出保存。</p><button class="btn" data-action="export-json">${icon('download')}下载完整备份 JSON</button><p class="stat-foot">备份包含分类、预算版本及金额记录。本版暂未提供备份导入。</p></section><section class="panel full"><h2>${icon('lock')}我们约好的记账规则</h2><ol><li>八个常用大类默认建立，餐饮自带早餐、午餐、晚餐。大类和小类都可添加，建立后不提供删除。</li><li>每项独立选择按天、月或年。日预算按月制定，月预算各月独立，年预算整年共用。周期选择会保留旧日期记录；本期已有实际金额时，周期须在下期更改。</li><li>本期金额可调整。按天项目次日锁定，按月项目下月锁定，按年项目次年锁定；同一月/年只保留一条实际记录。</li><li>历史周期未填的实际金额，可以补录一次。提交前需要核对，保存后立即锁定，0 元也算一次有效记录。</li><li>差值 = 预计 − 实际。节余为带加号的绿色数字，超支为红色负数，0 元使用默认颜色。</li><li>未记录与 0 元分开显示。日/月/年统计按生效天数分摊月、年金额；整期合计等于填写金额，差值只比较预算与实际均有值的周期。</li></ol><p class="stat-foot">这是本地个人账本。锁定限制由应用按设备日期执行，不能防止手动修改浏览器存储或设备时间。时间管理功能留待后续版本。</p></section><section class="panel full"><h2>${icon('leaf')}一日有数 <span class="tag">1.2.1</span></h2><p>从每一天的小计划开始，慢慢找到适合自己的生活节奏。</p><span class="saving-status">当前有 ${state.categories.length} 个大类、${state.items.length} 个小类、${Object.keys(state.records).length + Object.keys(state.periodRecords).length} 条实际金额记录。</span></section></div>`;
 }
 function bind() {
   app.querySelectorAll('[data-nav]').forEach(el => el.onclick = () => navigate(el.dataset.nav));
@@ -203,7 +203,7 @@ function bind() {
   app.querySelectorAll('[data-plan-shift]').forEach(el => el.onclick = () => { if (!leaveDraft()) return; planMonth = shiftMonth(planMonth, Number(el.dataset.planShift)); render(); });
   app.querySelectorAll('[data-report-shift]').forEach(el => el.onclick = () => { reportMonth = shiftMonth(reportMonth, Number(el.dataset.reportShift) * (reportMode === 'year' ? 12 : 1)); render(); });
   app.querySelectorAll('[data-report-mode]').forEach(el => el.onclick = () => { reportMode = el.dataset.reportMode; render(); });
-  app.querySelectorAll('[data-plan-add]').forEach(el => el.onclick = () => { if (!leaveDraft()) return; addModal('item', el.dataset.planAdd); });
+  app.querySelectorAll('[data-plan-add]').forEach(el => el.onclick = () => addModal('item', el.dataset.planAdd));
   const actualForm = document.querySelector('#actual-form');
   if (actualForm) {
     actualForm.onsubmit = event => { event.preventDefault(); submitActual(); };
@@ -250,14 +250,36 @@ function action(name) {
 }
 function addModal(type, parentId = null) {
   const isCategory = type === 'category';
+  // Adding a category item must not save or discard the in-progress budget form.
+  const planDraft = view === 'plan' ? {
+    dirty: draftDirty, scrollY: window.scrollY,
+    amounts: new Map([...app.querySelectorAll('[data-plan-item]')].map(input => [input.dataset.planItem, input.value])),
+    units: new Map([...app.querySelectorAll('[data-plan-unit]')].map(select => [select.dataset.planUnit, select.value]))
+  } : null;
   modal.innerHTML = `<form id="add-form"><div class="modal-top"><h2 id="modal-title">添加${isCategory ? '大类' : '小类'}</h2><button type="button" class="icon-btn" data-close aria-label="关闭">${icon('close')}</button></div><p class="modal-body">${isCategory ? '为生活添一个你关心的方面。' : `添加到「${esc(state.categories.find(c => c.id === parentId).name)}」。`}分类建立后会一直保留，请确认名称。</p><label class="field">${isCategory ? '大类' : '小类'}名称<input name="name" placeholder="${isCategory ? '例如：兴趣爱好' : '例如：零食'}" maxlength="16" required autocomplete="off"></label><p class="form-error" id="add-error" role="alert"></p><div class="modal-actions"><button type="button" class="btn" data-close>取消</button><button type="submit" class="btn primary">确认添加</button></div></form>`;
   modal.querySelectorAll('[data-close]').forEach(el => el.onclick = () => modal.close());
   modal.querySelector('form').onsubmit = async e => {
     e.preventDefault(); if (refreshDay()) return;
+    const submit = e.target.querySelector('[type="submit"]');
+    if (submit.disabled) return;
     const value = new FormData(e.target).get('name');
     const originalDate = selectedDate;
-    const ok = await commit(s => isCategory ? addCategory(s, value, dateKey()) : addItem(s, parentId, value, dateKey()));
-    if (ok) { modal.close(); selectedDate = dateKey(); calendarMonth = selectedDate.slice(0, 7); render(); toast(originalDate !== selectedDate ? '已添加，新分类从今天开始使用' : '已添加，去为它安排预算吧'); }
+    submit.disabled = true;
+    try {
+      const ok = await commit(s => isCategory ? addCategory(s, value, dateKey()) : addItem(s, parentId, value, dateKey()));
+      if (ok) {
+        modal.close(); selectedDate = dateKey(); calendarMonth = selectedDate.slice(0, 7); render();
+        if (planDraft) {
+          for (const input of app.querySelectorAll('[data-plan-item]')) if (planDraft.amounts.has(input.dataset.planItem)) input.value = planDraft.amounts.get(input.dataset.planItem);
+          for (const select of app.querySelectorAll('[data-plan-unit]')) if (!select.disabled && planDraft.units.has(select.dataset.planUnit)) select.value = planDraft.units.get(select.dataset.planUnit);
+          draftDirty = planDraft.dirty;
+          if (draftDirty) document.querySelector('#plan-form').dispatchEvent(new Event('input', { bubbles: true }));
+          app.querySelector(`[data-plan-add="${parentId}"]`)?.focus({ preventScroll: true });
+          window.scrollTo({ top: planDraft.scrollY });
+        }
+        toast(planDraft ? '已添加小类，可继续添加；预算草稿已保留，请记得保存' : originalDate !== selectedDate ? '已添加，新分类从今天开始使用' : '已添加，去为它安排预算吧');
+      }
+    } finally { submit.disabled = false; }
   };
   modal.showModal();
 }

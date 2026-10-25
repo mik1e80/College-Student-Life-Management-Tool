@@ -122,6 +122,37 @@ try {
   await client.evaluate("(() => { const input=document.querySelector('#actual-input'); input.value='118'; input.dispatchEvent(new Event('input',{bubbles:true})); document.querySelector('#actual-form').requestSubmit(); return true; })()");
   await until("Object.values(JSON.parse(localStorage.getItem('yiri-campus-life-v1')).periodRecords).some(r=>r.cents===11800)", 'A yearly actual is stored once');
   await screenshot('08-yearly-actual');
+  await client.evaluate("document.querySelector('.mobile-nav [data-nav=\"plan\"]').click(); true");
+  await until("!!document.querySelector('[data-plan-add=\"food\"]')", 'A populated budget category keeps its add-item entry');
+  await client.evaluate("(() => { const input=document.querySelector('[data-plan-item=\"meal-0\"]'); input.value='9.75'; input.dispatchEvent(new Event('input',{bubbles:true})); return true; })()");
+  async function addBudgetItem(categoryId, name) {
+    await client.evaluate(`document.querySelector('[data-plan-add="${categoryId}"]').click(); true`);
+    await until("document.querySelector('#modal').open && !!document.querySelector('#add-form')", `Add-item dialog opens for ${name} without leaving the draft`);
+    await client.evaluate(`document.querySelector('#add-form input[name="name"]').value=${JSON.stringify(name)}; document.querySelector('#add-form').requestSubmit(); true`);
+    await until(`!document.querySelector('#modal').open && !!document.querySelector('[aria-label="${name}预计金额"]')`, `${name} is added within the budget plan`);
+    assert.equal(await client.evaluate("document.querySelector('[data-plan-item=\"meal-0\"]').value"), '9.75');
+    assert.equal(await client.evaluate(`!!document.querySelector('[data-plan-add="${categoryId}"]')`), true);
+  }
+  await addBudgetItem('food', '零食');
+  await client.evaluate("(() => { const input=document.querySelector('[aria-label=\"零食预计金额\"]'); input.value='0'; const select=document.querySelector('[data-plan-unit=\"'+input.dataset.planItem+'\"]'); select.value='month'; select.dispatchEvent(new Event('change',{bubbles:true})); return true; })()");
+  await addBudgetItem('food', '水果');
+  const supplyId = await client.evaluate("JSON.parse(localStorage.getItem('yiri-campus-life-v1')).categories[1].id");
+  await addBudgetItem(supplyId, '洗衣液');
+  await addBudgetItem(supplyId, '纸巾');
+  assert.equal(await client.evaluate("document.querySelector('[aria-label=\"零食预计金额\"]').value"), '0');
+  assert.equal(await client.evaluate("document.querySelector('[aria-label=\"零食计费周期\"]').value"), 'month');
+  assert.equal(await client.evaluate("Object.values(JSON.parse(localStorage.getItem('yiri-campus-life-v1')).plans).flat().some(p=>p.cents===975)"), false);
+  report.push('Repeated additions to empty and populated categories preserve unsaved amount, zero and cycle fields without saving budgets');
+  await client.evaluate("document.querySelector('[data-plan-add=\"food\"]').click(); document.querySelector('#add-form input[name=\"name\"]').value='零食'; document.querySelector('#add-form').requestSubmit(); true");
+  await until("document.querySelector('#modal').open && !document.querySelector('#add-form [type=\"submit\"]').disabled && document.querySelector('#toast').textContent.includes('存在')", 'Duplicate name keeps the dialog open for correction');
+  await client.evaluate("document.querySelector('#add-form [data-close]').click(); true");
+  assert.equal(await client.evaluate("document.querySelector('[aria-label=\"零食预计金额\"]').value"), '0');
+  await screenshot('09-repeat-budget-items');
+  await client.evaluate("document.querySelector('#plan-form').requestSubmit(); true");
+  await until("Object.values(JSON.parse(localStorage.getItem('yiri-campus-life-v1')).plans).flat().some(p=>p.cents===975)", 'Preserved budget draft saves only when explicitly submitted');
+  await client.evaluate("document.querySelector('[data-plan-shift=\"-1\"]').click(); true");
+  assert.equal(await client.evaluate("document.querySelectorAll('[data-plan-add]').length"), 0);
+  report.push('Historical budget months remain read-only with no add-item entry');
   await client.evaluate("document.querySelector('.mobile-nav [data-nav=\"report\"]').click(); true");
   await until("!!document.querySelector('.report-section')", 'Spending report opens');
   await screenshot('05-report');
