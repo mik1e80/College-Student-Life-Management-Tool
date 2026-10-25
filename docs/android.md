@@ -10,7 +10,7 @@
 | --- | --- |
 | 应用名 | 一日有数 |
 | applicationId | `cn.yiriyoushu.campuslife` |
-| versionName / versionCode | `1.4.0` / `6` |
+| versionName / versionCode | `1.4.1` / `7` |
 | 系统下限 | Android 8.0 / API 26 |
 | 编译 / 目标 SDK | API 35 |
 | Android Gradle Plugin | `8.7.3` |
@@ -76,6 +76,6 @@ gradle -p android --no-daemon assembleRelease
 
 浏览器网页账本与 APK 账本分属不同存储，不会自动共享数据。清除应用数据或卸载应用会移除本机账本，应先从“我的账本”导出 JSON 备份。当前功能是否支持备份导入，以页面说明为准。
 
-用户目前没有云账号和域名，暂不进行国内平台实名认证，并明确接受 GitHub 发布安装包。因此当前入口为 [GitHub Releases](https://github.com/mik1e80/College-Student-Life-Management-Tool/releases/tag/v1.4.0)。不把 GitHub 地址标注为“中国大陆保证可达”；尚未进行大陆手机网络实测。应用安装后的离线使用不依赖下载站点。
+用户目前没有云账号和域名，暂不进行国内平台实名认证，并明确接受 GitHub 发布安装包。因此当前入口为 [GitHub Releases](https://github.com/mik1e80/College-Student-Life-Management-Tool/releases/tag/v1.4.1)。不把 GitHub 地址标注为“中国大陆保证可达”；尚未进行大陆手机网络实测。应用安装后的离线使用不依赖下载站点。
 
 `download-site/` 同时包含 APK、校验信息和独立下载介绍页；发行附件中的 `yiri-download-page-<version>.zip` 可解压部署到后续选择的静态托管服务。GitHub Release 由 [发行工作流](../.github/workflows/release.yml) 读取当前版本、校验实际签名与文件哈希后发布，无发行私钥进入 CI。

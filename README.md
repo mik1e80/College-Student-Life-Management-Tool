@@ -2,9 +2,9 @@
 
 大学生生活管理工具，提供安卓 APK 和手机网页版本。安卓包内置账本页面，安装后可离线使用，不需要 Google Play 服务。
 
-**[下载安卓版 APK](https://github.com/mik1e80/College-Student-Life-Management-Tool/releases/download/v1.4.0/yiri-1.4.0.apk)** · [GitHub 版本页面](https://github.com/mik1e80/College-Student-Life-Management-Tool/releases/tag/v1.4.0) · Android 8.0 及以上、可正常工作的现代系统 WebView。
+**[下载安卓版 APK](https://github.com/mik1e80/College-Student-Life-Management-Tool/releases/download/v1.4.1/yiri-1.4.1.apk)** · [GitHub 版本页面](https://github.com/mik1e80/College-Student-Life-Management-Tool/releases/tag/v1.4.1) · Android 8.0 及以上、可正常工作的现代系统 WebView。
 
-1.4.0 新增每天独立的时间规划与复制昨天。首页同时显示 24 小时时间线和生活费，全部空档红色、自由时间绿色，提供睡觉／自由时间／吃饭时间名称，支持跨日、修改和删除。旧账本保留，覆盖升级请勿先卸载。
+1.4.1 新增明确的结束日期：25 日 22:00 至 26 日 07:00 可直接选择。移除两个凌晨选项，精简页面重复说明，保留时间规划与原生活费。覆盖安装请勿先卸载。
 
 **[打开一日有数](https://campus-life-yiri-20261025.my-team-1261.chatgpt.site)** · 公开访问，无需登录。手机安装说明见 [使用说明](docs/usage.md)。
 
@@ -67,6 +67,7 @@ node --test tests/*.test.mjs
 - [安卓版 1.2.1 发行说明](docs/releases/v1.2.1.md)
 - [安卓版 1.3.0 发行说明](docs/releases/v1.3.0.md)
 - [安卓版 1.4.0 发行说明](docs/releases/v1.4.0.md)
+- [安卓版 1.4.1 发行说明](docs/releases/v1.4.1.md)
 
 ## 界面预览
 

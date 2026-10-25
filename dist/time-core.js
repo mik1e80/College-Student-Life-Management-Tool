@@ -16,11 +16,17 @@ export function parseClock(value) {
 export function clockLabel(minute) {
   return `${String(Math.floor(minute/60)).padStart(2,'0')}:${String(minute%60).padStart(2,'0')}`;
 }
-export function timeSpan(date, start, end) {
+export function timeSpan(date, start, end, endDate = null) {
   checkDate(date);
   let a=parseClock(start), b=parseClock(end);
-  if (a===b) throw Error('开始与结束不能相同；全天请选择 00:00 至 24:00');
-  if (b<a) b+=DAY;
+  if (endDate === null) {
+    if (a===b) throw Error('开始与结束不能相同；全天请选择 00:00 至 24:00');
+    if (b<a) b+=DAY;
+  } else {
+    checkDate(endDate);
+    b+=(Date.parse(endDate+'T00:00:00Z')-Date.parse(date+'T00:00:00Z'))/60000;
+    if (b<=a) throw Error('结束日期和时间必须晚于开始日期和时间');
+  }
   if (a===DAY) { date=shiftTimeDate(date,1); a=0; b-=DAY; }
   if (b<=a || b-a>DAY) throw Error('时间段须大于 0 且不超过 24 小时');
   return {date,start:a,end:b};
@@ -39,9 +45,9 @@ export function validateTimeEntries(entries) {
   const sorted=[...entries].sort((a,b)=>absoluteStart(a)-absoluteStart(b));
   for(let i=1;i<sorted.length;i++) if(absoluteStart(sorted[i])<absoluteEnd(sorted[i-1])) throw Error('时间安排存在重叠');
 }
-export function saveTimeEntry(state, {id, date, start, end, title, kind='normal'}) {
+export function saveTimeEntry(state, {id, date, start, end, endDate = null, title, kind='normal'}) {
   if (id && !state.timeEntries.some(e=>e.id===id)) throw Error('这条时间安排已不存在');
-  const entry={id:id||globalThis.crypto.randomUUID(),...timeSpan(date,start,end),title:String(title).trim(),kind};
+  const entry={id:id||globalThis.crypto.randomUUID(),...timeSpan(date,start,end,endDate),title:String(title).trim(),kind};
   checkEntry(entry);
   const next=state.timeEntries.filter(e=>e.id!==entry.id);
   const conflict=next.find(e=>absoluteStart(entry)<absoluteEnd(e)&&absoluteEnd(entry)>absoluteStart(e));

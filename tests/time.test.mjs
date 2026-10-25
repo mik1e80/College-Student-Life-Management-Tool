@@ -74,3 +74,31 @@ test('backup roundtrip preserves timelines and rejects corrupted or overlapping 
     const bad=structuredClone(s); change(bad); assert.throws(()=>readState(JSON.stringify(bad)));
   }
 });
+
+test('explicit next-day end date saves 22:00 to 07:00 as one nine-hour sleep',()=>{
+  const s=createState(date);
+  const entry=saveTimeEntry(s,{date,start:'22:00',endDate:'2026-10-26',end:'07:00',title:'睡觉'});
+  assert.deepEqual([entry.date,entry.start,entry.end],[date,1320,1860]);
+  assert.equal(timeSummary(s,date).planned,120);assert.equal(timeSummary(s,'2026-10-26').planned,420);
+  assert.equal(entry.end-entry.start,540);
+});
+test('explicit same-day earlier end and invalid dates are rejected instead of inferred',()=>{
+  const s=createState(date), before=structuredClone(s);
+  for(const endDate of [date,'2026-10-24','2026-02-30',''])assert.throws(()=>saveTimeEntry(s,{date,start:'22:00',endDate,end:'07:00',title:'睡觉'}));
+  assert.deepEqual(s,before);
+  assert.deepEqual(timeSpan(date,'22:00','07:00'),{date,start:1320,end:1860});
+});
+test('explicit end dates support full 24-hour periods and calendar boundaries',()=>{
+  assert.deepEqual(timeSpan(date,'08:00','08:00','2026-10-26'),{date,start:480,end:1920});
+  assert.deepEqual(timeSpan('2028-02-29','22:00','07:00','2028-03-01'),{date:'2028-02-29',start:1320,end:1860});
+  assert.deepEqual(timeSpan('2026-12-31','22:00','07:00','2027-01-01'),{date:'2026-12-31',start:1320,end:1860});
+  assert.throws(()=>timeSpan(date,'08:00','08:01','2026-10-26'),/24/);
+});
+test('explicit-date editing preserves old overnight IDs and still protects adjacent-day conflicts',()=>{
+  const s=createState(date), old=add(s,'23:00','07:00');
+  saveTimeEntry(s,{id:old.id,date,start:'22:00',endDate:'2026-10-26',end:'07:00',title:'睡觉'});
+  assert.equal(s.timeEntries[0].id,old.id);
+  const before=structuredClone(s);
+  assert.throws(()=>saveTimeEntry(s,{date:'2026-10-26',start:'06:00',endDate:'2026-10-26',end:'08:00',title:'早饭'}),/重叠/);
+  assert.deepEqual(s,before);assert.deepEqual(readState(JSON.stringify(s)),s);
+});

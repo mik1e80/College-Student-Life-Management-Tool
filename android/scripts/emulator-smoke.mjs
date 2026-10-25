@@ -197,20 +197,27 @@ try {
 
   await client.evaluate("document.querySelector('.mobile-nav [data-nav=\"time\"]').click(); const input=document.querySelector('#time-date'); input.value=JSON.parse(localStorage.getItem('yiri-campus-life-v1')).createdOn; input.dispatchEvent(new Event('change',{bubbles:true})); true");
   await until("document.querySelector('[data-time-gap]').dataset.timeGap==='1440'", 'New time planner shows the entire unplanned day');
-  async function addTime(title,start,end) {
+  async function addTime(title,start,end,nextDay=false) {
     await client.evaluate("document.querySelector('[data-action=\"add-time\"]').click(); true");
     await until("!!document.querySelector('#time-form')", `Time editor opens for ${title}`);
-    await client.evaluate(`(() => { const form=document.querySelector('#time-form'); const preset=form.querySelector('[data-time-preset="${title}"]'); if(preset)preset.click(); else form.querySelector('#time-title').value=${JSON.stringify(title)}; form.querySelector('#time-start-midnight').checked=${start==='24:00'}; form.querySelector('#time-end-midnight').checked=${end==='24:00'}; form.querySelector('#time-start').value=${JSON.stringify(start==='24:00'?'00:00':start)}; form.querySelector('#time-end').value=${JSON.stringify(end==='24:00'?'00:00':end)}; form.dispatchEvent(new Event('change',{bubbles:true})); form.requestSubmit(); return true; })()`);
+    await client.evaluate(`(() => { const form=document.querySelector('#time-form'); const preset=form.querySelector('[data-time-preset="${title}"]'); if(preset)preset.click(); else form.querySelector('#time-title').value=${JSON.stringify(title)}; const day=new Date(form.querySelector('#time-entry-date').value+'T12:00:00Z'); day.setUTCDate(day.getUTCDate()+${nextDay?1:0}); form.querySelector('#time-end-date').value=day.toISOString().slice(0,10); form.querySelector('#time-start').value=${JSON.stringify(start)}; form.querySelector('#time-end').value=${JSON.stringify(end)}; form.dispatchEvent(new Event('change',{bubbles:true})); form.requestSubmit(); return true; })()`);
     await until("!document.querySelector('#modal').open", `${title} time range saves`);
   }
   await addTime('睡觉','00:00','07:00');
   await addTime('自由时间','12:00','13:00');
   assert.equal(await client.evaluate("document.querySelectorAll('[data-time-kind=\"free\"]').length"),1);
-  await client.evaluate("document.querySelector('[data-action=\"add-time\"]').click(); document.querySelector('[data-time-preset=\"吃饭时间\"]').click(); document.querySelector('#time-end-midnight').checked=false; document.querySelector('#time-start').value='06:00'; document.querySelector('#time-end').value='08:00'; document.querySelector('#time-form').dispatchEvent(new Event('change',{bubbles:true})); document.querySelector('#time-form').requestSubmit(); true");
+  await client.evaluate("document.querySelector('[data-action=\"add-time\"]').click(); document.querySelector('[data-time-preset=\"吃饭时间\"]').click(); document.querySelector('#time-end-date').value=document.querySelector('#time-entry-date').value; document.querySelector('#time-start').value='06:00'; document.querySelector('#time-end').value='08:00'; document.querySelector('#time-form').dispatchEvent(new Event('change',{bubbles:true})); document.querySelector('#time-form').requestSubmit(); true");
   await until("document.querySelector('#time-error').textContent.includes('重叠')", 'Overlapping time is rejected without closing the editor');
   await client.evaluate("document.querySelector('#time-start').value='07:00'; document.querySelector('#time-form').requestSubmit(); true");
   await until("!document.querySelector('#modal').open", 'An adjusted adjacent meal time saves');
-  await addTime('睡觉','23:00','07:00');
+  await addTime('睡觉','22:00','07:00',true);
+  const nightId=await client.evaluate("JSON.parse(localStorage.getItem('yiri-campus-life-v1')).timeEntries.find(e=>e.start===1320&&e.end===1860).id");
+  await client.evaluate(`document.querySelector('[data-time-edit="${nightId}"]').click(); true`);
+  assert.equal(await client.evaluate("document.querySelector('#time-start').value==='22:00' && document.querySelector('#time-end').value==='07:00' && document.querySelector('#time-entry-date').value!==document.querySelector('#time-end-date').value"),true);
+  assert.equal(await client.evaluate("document.querySelectorAll('#time-start-midnight,#time-end-midnight').length"),0);
+  await screenshot('13-explicit-end-date');
+  await client.evaluate("document.querySelector('#time-form [data-close]').click(); true");
+  report.push('Explicit end date preserves 22:00 to next-day 07:00 on reopen; midnight toggles are removed');
   await screenshot('11-day-timeline');
   await client.evaluate("document.querySelector('[data-time-kind=\"free\"] [data-time-edit]').click(); document.querySelector('#time-title').value='午间休息'; document.querySelector('#time-form').requestSubmit(); true");
   await until("JSON.parse(localStorage.getItem('yiri-campus-life-v1')).timeEntries.some(e=>e.title==='午间休息' && e.kind==='free')", 'Custom title retains the explicit free-time designation');
