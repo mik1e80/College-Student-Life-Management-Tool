@@ -62,7 +62,7 @@ export function createState(today = dateKey()) {
       ['health', '医疗健康', 'heart', '#fae7e0'], ['other', '其他与备用金', 'box', '#eeeee7']
     ].map(([id, name, icon, color]) => ({ id, name, icon, color, createdOn: today })),
     items: ['早餐', '午餐', '晚餐'].map((name, i) => ({ id: `meal-${i}`, categoryId: 'food', name, createdOn: today })),
-    plans: {}, records: {}, cadences: {}, periodPlans: {}, periodRecords: {}, timeEntries: []
+    plans: {}, records: {}, cadences: {}, periodPlans: {}, periodRecords: {}, timeEntries: [], reminderSettings: {enabled:false}
   };
 }
 export function addCategory(state, rawName, today = dateKey()) {
@@ -213,6 +213,8 @@ export function readState(raw) {
   if (!Object.hasOwn(s, 'timeEntries') && s.schema !== SCHEMA) s.timeEntries = [];
   s.schema = SCHEMA;
   validateTimeEntries(s.timeEntries);
+  if (!Object.hasOwn(s,'reminderSettings')) s.reminderSettings={enabled:false};
+  if (!s.reminderSettings || typeof s.reminderSettings.enabled!=='boolean') throw Error('提醒设置不正确');
   for (const value of [s.cadences, s.periodPlans, s.periodRecords]) if (!value || typeof value !== 'object' || Array.isArray(value)) throw Error('周期数据不正确');
   if (s.categories.some(x => !x.id || !x.name || !validDate(x.createdOn)) || s.items.some(x => !x.id || !x.name || !validDate(x.createdOn) || !s.categories.some(c => c.id === x.categoryId))) throw Error('分类数据不正确');
   for (const changes of Object.values(s.cadences)) {

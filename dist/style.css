@@ -16,3 +16,5 @@
 @media(max-width:650px){.time-editor-grid{grid-template-columns:minmax(0,1fr)}.time-editor-grid>div{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:8px;align-items:start}#time-form .field{margin:10px 0}#time-form .field input{padding:10px;font-size:12px}}
 
 .category .tile-icon{background:#f2f2f2;color:#262626}.nav button.active{background:#f0f0f0}.hero-top{color:#e2e2e2}.hero-bottom{color:#c8c8c8}.hero-bottom .plan-link{color:#fff}.hero-bottom strong{color:#fff}.time-row:not(.time-free):not(.time-gap){border-left-color:#777}.side-note,.note-panel,.plan-summary{background:#f5f5f5}
+
+.reminder-editor{display:grid;grid-template-columns:1fr 1fr;gap:12px}.reminder-editor .field{min-width:0;margin:12px 0}.reminder-editor select{display:block;width:100%;padding:11px 7px;margin-top:9px;border:1px solid var(--line);border-radius:9px;background:#fafafa;color:var(--ink);font-size:12px}.reminder-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}#reminder-dialog h2{font-size:19px}#reminder-dialog .modal-body{overflow-wrap:anywhere}

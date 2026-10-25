@@ -48,7 +48,11 @@ public final class MainActivity extends Activity {
     private static final int CREATE_EXPORT = 1001;
     private static final int MAX_EXPORT_BYTES = 1024 * 1024;
     private static final int MAX_LEDGER_BYTES = 4 * 1024 * 1024;
-    private static final Object LEDGER_LOCK = new Object();
+    static final Object LEDGER_LOCK = new Object();
+    private static java.lang.ref.WeakReference<MainActivity> visibleActivity = new java.lang.ref.WeakReference<>(null);
+    private boolean foreground;
+    private boolean pageReady;
+    private AlertDialog reminderDialog;
     private static final String EXPORT_STATE = "pendingExportToken";
     private WebView webView;
     private String pendingExportToken;
@@ -107,6 +111,10 @@ public final class MainActivity extends Activity {
                 .addPathHandler("/assets/", new WebViewAssetLoader.AssetsPathHandler(this))
                 .build();
         webView.setWebViewClient(new WebViewClient() {
+            @Override public void onPageFinished(WebView view,String url) {
+                pageReady=isTrustedPage();
+                if(pageReady)openReminderIntent(getIntent());
+            }
             @Override
             public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
                 if (!"GET".equals(request.getMethod()) || !isLocalAsset(request.getUrl())) return blocked(403);
@@ -232,12 +240,42 @@ public final class MainActivity extends Activity {
                     stream.write(bytes);
                     stream.getFD().sync();
                     file.finishWrite(stream);
+                    // Reminder failure must not turn a durable ledger save into a reported failure.
+                    try { ReminderScheduler.sync(MainActivity.this); }
+                    catch(Exception reminderError) { android.util.Log.e("TaskReminder","Unable to schedule",reminderError); }
                     return true;
                 } catch (Exception error) {
                     if (stream != null) file.failWrite(stream);
                     return false;
                 }
             }
+        }
+
+        @JavascriptInterface
+        public String reminderStatus() { return ReminderScheduler.status(MainActivity.this).toString(); }
+
+        @JavascriptInterface
+        public void requestReminderNotifications() {
+            runOnUiThread(() -> {
+                if(!isTrustedPage())return;
+                ReminderScheduler.channel(MainActivity.this);
+                if(Build.VERSION.SDK_INT>=33 && checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS)!=android.content.pm.PackageManager.PERMISSION_GRANTED)
+                    requestPermissions(new String[]{android.Manifest.permission.POST_NOTIFICATIONS},704);
+                else reminderPermissionChanged();
+            });
+        }
+
+        @JavascriptInterface
+        public void openReminderSettings(String kind) {
+            runOnUiThread(() -> {
+                if(!isTrustedPage())return;
+                Intent settings;
+                if("exact".equals(kind)&&Build.VERSION.SDK_INT>=31)
+                    settings=new Intent(android.provider.Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM).setData(Uri.parse("package:"+getPackageName()));
+                else settings=new Intent(android.provider.Settings.ACTION_CHANNEL_NOTIFICATION_SETTINGS)
+                    .putExtra(android.provider.Settings.EXTRA_APP_PACKAGE,getPackageName()).putExtra(android.provider.Settings.EXTRA_CHANNEL_ID,ReminderScheduler.CHANNEL);
+                try{startActivity(settings);}catch(ActivityNotFoundException unavailable){Toast.makeText(MainActivity.this,"请在手机设置中允许双衡的通知和闹钟提醒",Toast.LENGTH_LONG).show();}
+            });
         }
 
         @JavascriptInterface
@@ -348,17 +386,52 @@ public final class MainActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
+        foreground=true;visibleActivity=new java.lang.ref.WeakReference<>(this);
         if (webView != null) webView.onResume();
+        reminderPermissionChanged();
     }
 
     @Override
     protected void onPause() {
+        foreground=false;
         if (webView != null) webView.onPause();
         super.onPause();
     }
 
+    @Override public void onRequestPermissionsResult(int requestCode,String[] permissions,int[] results) {
+        super.onRequestPermissionsResult(requestCode,permissions,results);
+        if(requestCode==704)reminderPermissionChanged();
+    }
+    private void reminderPermissionChanged() {
+        try {ReminderScheduler.sync(this);}catch(Exception error){android.util.Log.e("TaskReminder","Unable to reschedule",error);}
+        if(pageReady&&isTrustedPage())webView.evaluateJavascript("window.YiriReminderPermissionsChanged && window.YiriReminderPermissionsChanged()",null);
+    }
+    @Override protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);setIntent(intent);if(pageReady)openReminderIntent(intent);
+    }
+    private void openReminderIntent(Intent intent) {
+        String id=intent.getStringExtra("reminderId"),date=intent.getStringExtra("reminderDate");
+        if(id==null||date==null||!isTrustedPage())return;
+        intent.removeExtra("reminderId");intent.removeExtra("reminderDate");
+        webView.evaluateJavascript("window.YiriOpenReminder && window.YiriOpenReminder("+JSONObject.quote(date)+","+JSONObject.quote(id)+")",null);
+    }
+    static boolean presentReminders(java.util.List<ReminderScheduler.Event> events) {
+        MainActivity activity=visibleActivity.get();
+        if(events.isEmpty()||activity==null||!activity.foreground||!activity.pageReady||activity.isFinishing()||!activity.hasWindowFocus()||!activity.isTrustedPage()||activity.reminderDialog!=null)return false;
+        StringBuilder text=new StringBuilder();long now=System.currentTimeMillis();
+        for(ReminderScheduler.Event event:events){if(text.length()>0)text.append("\n\n");text.append(event.message(now));}
+        ReminderScheduler.Event first=events.get(0);
+        activity.reminderDialog=new AlertDialog.Builder(activity).setTitle("任务提醒").setMessage(text.toString())
+                .setNegativeButton("知道了",(dialog,which)->{})
+                .setPositiveButton("查看安排",(dialog,which)->activity.webView.evaluateJavascript("window.YiriOpenReminder && window.YiriOpenReminder("+JSONObject.quote(first.date)+","+JSONObject.quote(first.id)+")",null))
+                .create();
+        activity.reminderDialog.setOnDismissListener(dialog->activity.reminderDialog=null);activity.reminderDialog.show();return true;
+    }
+
     @Override
     protected void onDestroy() {
+        foreground=false;
+        if(reminderDialog!=null){reminderDialog.dismiss();reminderDialog=null;}
         if (Build.VERSION.SDK_INT >= 33 && backCallback != null) {
             getOnBackInvokedDispatcher().unregisterOnBackInvokedCallback(backCallback);
         }

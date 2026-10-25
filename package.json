@@ -1,7 +1,7 @@
 {
   "name": "campus-life",
-  "version": "1.5.0",
-  "androidVersionCode": 8,
+  "version": "1.6.0",
+  "androidVersionCode": 9,
   "private": true,
   "type": "module",
   "scripts": {

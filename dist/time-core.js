@@ -37,6 +37,10 @@ function checkEntry(entry) {
   if (!entry || typeof entry.id!=='string' || !entry.id || typeof entry.title!=='string' || !entry.title.trim() || entry.title.length>24 || !['normal','free'].includes(entry.kind)) throw Error('时间安排名称或类型不正确');
   checkDate(entry.date);
   if (!Number.isInteger(entry.start)||entry.start<0||entry.start>=DAY||!Number.isInteger(entry.end)||entry.end<=entry.start||entry.end>entry.start+DAY) throw Error('单条时间安排须大于 0 且不超过 24 小时');
+  if (entry.reminders !== undefined) validateReminderChoice(entry.reminders);
+}
+export function validateReminderChoice(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value) || !['start','end'].every(key => value[key] === null || Number.isInteger(value[key]) && value[key] >= 0 && value[key] <= 1440)) throw Error('提醒时间须为 0 至 1440 分钟，或关闭提醒');
 }
 export function validateTimeEntries(entries) {
   if (!Array.isArray(entries)) throw Error('时间安排数据不正确');
@@ -45,9 +49,11 @@ export function validateTimeEntries(entries) {
   const sorted=[...entries].sort((a,b)=>absoluteStart(a)-absoluteStart(b));
   for(let i=1;i<sorted.length;i++) if(absoluteStart(sorted[i])<absoluteEnd(sorted[i-1])) throw Error('时间安排存在重叠');
 }
-export function saveTimeEntry(state, {id, date, start, end, endDate = null, title, kind='normal'}) {
+export function saveTimeEntry(state, {id, date, start, end, endDate = null, title, kind='normal', reminders}) {
   if (id && !state.timeEntries.some(e=>e.id===id)) throw Error('这条时间安排已不存在');
   const entry={id:id||globalThis.crypto.randomUUID(),...timeSpan(date,start,end,endDate),title:String(title).trim(),kind};
+  const choice=reminders === undefined ? state.timeEntries.find(e=>e.id===id)?.reminders : reminders;
+  if(choice !== undefined) { validateReminderChoice(choice); entry.reminders={...choice}; }
   checkEntry(entry);
   const next=state.timeEntries.filter(e=>e.id!==entry.id);
   const conflict=next.find(e=>absoluteStart(entry)<absoluteEnd(e)&&absoluteEnd(entry)>absoluteStart(e));
@@ -90,7 +96,7 @@ export function copyTimeDay(state,from,to) {
   for(const entry of source) {
     if(target.some(e=>e.start===entry.start&&e.end===entry.end&&e.title===entry.title&&e.kind===entry.kind))continue;
     if(target.some(e=>e.start<entry.end&&e.end>entry.start))throw Error('复制内容与当天已有安排冲突，未作任何修改；请先调整冲突时段');
-    additions.push({id:globalThis.crypto.randomUUID(),date:to,start:entry.start,end:entry.end,title:entry.title,kind:entry.kind});
+    additions.push({id:globalThis.crypto.randomUUID(),date:to,start:entry.start,end:entry.end,title:entry.title,kind:entry.kind,...(entry.reminders?{reminders:{...entry.reminders}}:{})});
   }
   const next=[...state.timeEntries,...additions]; validateTimeEntries(next);
   state.timeEntries=next.sort((a,b)=>absoluteStart(a)-absoluteStart(b)); return additions.length;
