@@ -4,6 +4,8 @@
 
 当前 `schema` 为 3，保持存储键 `yiri-campus-life-v1`。读取 schema 1 / 2 账本时补上 `timeEntries: []` 并保留原财务字段；时间列表包含在完整 JSON 备份中。`dist/time-core.js` 独立负责时间规则，财务核心调用其校验器，两个模块无循环依赖。
 
+`dist/ledger-store.js` 统一读取、保存和备份。网页继续使用 localStorage；安卓通过固定本地桥的 `loadLedger` / `saveLedger` 同步读写应用私有 `ledger-checkpoint.json`。使用 AtomicFile 及文件描述符同步，写失败不报告成功，写入上限 4 MiB。启动时验证两种存储并选择较高 revision；同 revision 保留浏览器值以兼容旧版及跨窗口编辑。原子文件成功后更新 WebView 镜像，镜像空间不足时仍能从原子文件恢复。应用无备份到云端或联网权限。
+
 `timeEntries` 的记录为 `{id, date, start, end, title, kind}`。date 是实际开始的本地日期，start 为 0～1439 的整数分钟；end 大于 start、最多 start+1440，可跨入次日；kind 为 normal 或 free。24:00 开始会规范化为次日 00:00。以日期的日历序号加分钟比较范围，避免在跨日计算中混用本地夏令时小时偏移。
 
 读取、保存与复制均验证合法性和全部日期重叠；展示时将跨日记录裁到所选日，补齐首、尾与中间所有空档，全天总计 1440 分钟。复制仅复制源日可见片段，精确相同的目标片段复用，任一冲突原子拒绝；时间修改删除沿用跨窗口锁和最新状态读取，不改变财务记录。

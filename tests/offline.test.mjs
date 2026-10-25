@@ -16,7 +16,7 @@ function worker({ fetchImpl = async () => { throw Error('offline'); }, matches =
 test('offline installation includes every required local resource and valid PWA icons', async () => {
   const w = worker(); let pending;
   w.listeners.install({ waitUntil: promise => { pending = promise; } }); await pending;
-  assert(w.added.includes('./app.js')); assert(w.added.includes('./core.js')); assert(w.added.includes('./time-core.js')); assert(w.added.includes('./index.html'));
+  assert(w.added.includes('./app.js')); assert(w.added.includes('./core.js')); assert(w.added.includes('./time-core.js')); assert(w.added.includes('./ledger-store.js')); assert(w.added.includes('./index.html'));
   for (const asset of w.added) await access(new URL(asset === './' ? '../dist/index.html' : `../dist/${asset.slice(2)}`, import.meta.url));
   const manifest = JSON.parse(await readFile(new URL('../dist/manifest.webmanifest', import.meta.url), 'utf8'));
   assert.equal(manifest.display, 'standalone');
@@ -41,7 +41,7 @@ test('worker never intercepts cross-origin requests or writes', () => {
   assert.equal(intercepted, 0);
 });
 test('activation preserves unrelated application caches', async () => {
-  const w = worker({ names: ['yiri-v0.9.0', 'yiri-v1.4.0', 'another-app-v1'] }); let pending;
+  const w = worker({ names: ['yiri-v0.9.0', 'yiri-v1.4.0-r2', 'another-app-v1'] }); let pending;
   w.listeners.activate({ waitUntil: promise => { pending = promise; } }); await pending;
   assert.deepEqual(w.deleted, ['yiri-v0.9.0']);
 });

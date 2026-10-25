@@ -9,6 +9,7 @@ import android.graphics.Insets;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.AtomicFile;
 import android.view.View;
 import android.view.WindowInsets;
 import android.webkit.JavascriptInterface;
@@ -30,6 +31,8 @@ import org.json.JSONObject;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
@@ -44,6 +47,8 @@ public final class MainActivity extends Activity {
     private static final String APP_URL = "https://" + APP_HOST + "/assets/index.html";
     private static final int CREATE_EXPORT = 1001;
     private static final int MAX_EXPORT_BYTES = 1024 * 1024;
+    private static final int MAX_LEDGER_BYTES = 4 * 1024 * 1024;
+    private static final Object LEDGER_LOCK = new Object();
     private static final String EXPORT_STATE = "pendingExportToken";
     private WebView webView;
     private String pendingExportToken;
@@ -198,6 +203,42 @@ public final class MainActivity extends Activity {
     private final class AppBridge {
         @JavascriptInterface
         public boolean isNative() { return true; }
+
+        @JavascriptInterface
+        public String loadLedger() {
+            synchronized (LEDGER_LOCK) {
+                AtomicFile file = new AtomicFile(new File(getFilesDir(), "ledger-checkpoint.json"));
+                try { return new String(file.readFully(), StandardCharsets.UTF_8); }
+                catch (FileNotFoundException absent) { return null; }
+                catch (IOException error) { throw new IllegalStateException("本机账本暂时无法读取，请重试", error); }
+            }
+        }
+
+        @JavascriptInterface
+        public boolean saveLedger(String text) {
+            if (text == null || text.length() > MAX_LEDGER_BYTES) return false;
+            byte[] bytes = text.getBytes(StandardCharsets.UTF_8);
+            if (bytes.length > MAX_LEDGER_BYTES) return false;
+            synchronized (LEDGER_LOCK) {
+                AtomicFile file = new AtomicFile(new File(getFilesDir(), "ledger-checkpoint.json"));
+                FileOutputStream stream = null;
+                try {
+                    JSONObject ledger = new JSONObject(text);
+                    int schema = ledger.getInt("schema");
+                    long revision = ledger.getLong("revision");
+                    if (schema < 1 || schema > 3 || revision < 0 || revision > 9007199254740991L) return false;
+                    // Bridge calls run on WebView's bridge thread. Confirm durability before returning success.
+                    stream = file.startWrite();
+                    stream.write(bytes);
+                    stream.getFD().sync();
+                    file.finishWrite(stream);
+                    return true;
+                } catch (Exception error) {
+                    if (stream != null) file.failWrite(stream);
+                    return false;
+                }
+            }
+        }
 
         @JavascriptInterface
         public void exitApp() {

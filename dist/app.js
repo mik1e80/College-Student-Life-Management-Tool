@@ -1,11 +1,13 @@
 import { createState, readState, dateKey, datesInMonth, shiftMonth, parseMoney, addCategory, addItem, getPlan, setPlans, getRecord, saveActual, summarize, itemExists, UNITS, UNIT_LABELS, getUnit, getPeriod, datesInYear, renameCategory, renameItem, hasItemRecords, canDeleteCategory, deleteItem, deleteCategory } from './core.js';
 
 import { TIME_PRESETS, clockLabel, timeSpan, shiftTimeDate, saveTimeEntry, deleteTimeEntry, dayTimeline, timeSummary, copyTimeDay } from './time-core.js';
+import { createLedgerStore } from './ledger-store.js';
 
 const KEY = 'yiri-campus-life-v1';
 const app = document.querySelector('#app');
 const modal = document.querySelector('#modal');
 const isAndroidApp = location.origin === 'https://appassets.androidplatform.net' && typeof window.AndroidApp?.isNative === 'function' && window.AndroidApp.isNative();
+const ledgerStore = createLedgerStore({ getItem: key => localStorage.getItem(key), setItem: (key, value) => localStorage.setItem(key, value) }, KEY, isAndroidApp ? window.AndroidApp : null);
 const icons = {
   grid: '<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
   book: '<path d="M4 4h7v16H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Zm7 0h9a2 2 0 0 1 2 2v12a2 2 0 0 0-2 2h-9M6 8h2m7 0h3m-3 4h3"/>',
@@ -51,9 +53,9 @@ let view = 'home', currentCategory = null, currentItem = null, state, storageBro
 let installPrompt = null, draftDirty = false;
 const navs = [['home', 'grid', '生活总览'], ['time', 'clock', '时间规划'], ['plan', 'book', '预算计划'], ['report', 'chart', '支出统计'], ['settings', 'settings', '我的账本']];
 try {
-  const raw = localStorage.getItem(KEY);
-  state = raw ? readState(raw) : createState(today);
-  if (!raw) localStorage.setItem(KEY, JSON.stringify(state));
+  const existing = ledgerStore.load();
+  state = existing || createState(today);
+  if (!existing || ledgerStore.native) ledgerStore.save(state);
 } catch (error) {
   storageBroken = true;
   app.innerHTML = `<div class="fatal"><h1>账本暂时无法打开</h1><p>浏览器存储不可用或已有数据格式异常。为保护原记录，没有覆盖已有数据。请开启浏览器存储权限后刷新；如仍无法打开，可先下载原始数据。</p><button class="btn primary" id="recover">下载原始数据</button><p>${esc(error.message)}</p></div>`;
@@ -74,9 +76,9 @@ function refreshDay() {
 async function commit(change, onError = toast) {
   const run = () => {
     // Re-read inside the cross-tab lock so two open pages cannot overwrite each other.
-    const latest = readState(localStorage.getItem(KEY));
+    const latest = ledgerStore.load();
     const copy = structuredClone(latest); change(copy); copy.revision++;
-    localStorage.setItem(KEY, JSON.stringify(copy)); state = copy;
+    ledgerStore.save(copy); state = copy;
   };
   try {
     if (navigator.locks) await navigator.locks.request(KEY, run); else run();
@@ -461,7 +463,7 @@ function download(text, name, type) {
   return 'browser';
 }
 function exportJSON() {
-  try { const latest = readState(localStorage.getItem(KEY)); const mode = download(JSON.stringify(latest, null, 2), `一日有数-完整备份-${dateKey()}.json`, 'application/json'); if (mode === 'browser') toast('备份已下载，请保存到安全的位置'); }
+  try { const latest = ledgerStore.load(); const mode = download(JSON.stringify(latest, null, 2), `一日有数-完整备份-${dateKey()}.json`, 'application/json'); if (mode === 'browser') toast('备份已下载，请保存到安全的位置'); }
   catch (e) { toast('导出失败：' + e.message); }
 }
 function exportCSV() {

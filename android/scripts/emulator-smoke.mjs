@@ -90,7 +90,7 @@ try {
   await screenshot('03-category');
 
   // Mimic an installed 1.1.0 ledger before restarting the upgraded app.
-  await client.evaluate("(() => { const old = JSON.parse(localStorage.getItem('yiri-campus-life-v1')); old.schema=1; delete old.cadences; delete old.periodPlans; delete old.periodRecords; delete old.timeEntries; localStorage.setItem('yiri-campus-life-v1',JSON.stringify(old)); return true; })()");
+  assert.equal(await client.evaluate("(() => { const old = JSON.parse(localStorage.getItem('yiri-campus-life-v1')); old.schema=1; delete old.cadences; delete old.periodPlans; delete old.periodRecords; delete old.timeEntries; const raw=JSON.stringify(old); localStorage.setItem('yiri-campus-life-v1',raw); return AndroidApp.saveLedger(raw); })()"),true);
 
   client.close();
   adb('shell', 'am', 'force-stop', app);
@@ -222,6 +222,8 @@ try {
   await until("document.querySelector('#toast').textContent.includes('没有重复')", 'Copying again does not duplicate events');
   await client.evaluate("document.querySelector('[data-time-kind=\"free\"] [data-time-edit]').click(); document.querySelector('#delete-time').click(); document.querySelector('#confirm-time-delete').click(); true");
   await until("!document.querySelector('#modal').open && JSON.parse(localStorage.getItem('yiri-campus-life-v1')).timeEntries.length===6", 'Time entries may be deleted and their slots become unplanned');
+  assert.equal(await client.evaluate("JSON.parse(AndroidApp.loadLedger()).timeEntries.length"),6);
+  report.push('Native atomic checkpoint contains the confirmed latest six entries before immediate process death');
   assert.equal(await client.evaluate("Object.values(JSON.parse(localStorage.getItem('yiri-campus-life-v1')).records).some(r=>r.cents===850)"),true);
   client.close(); adb('shell','am','force-stop',app); adb('shell','am','start','-n',`${app}/.MainActivity`); client=await connect();
   await until("!!document.querySelector('#time-timeline') && !!document.querySelector('[data-category]')", 'Home combines the full time overview and expense categories');
