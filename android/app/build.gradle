@@ -1,6 +1,7 @@
 plugins {
     id 'com.android.application'
 }
+def packageMetadata = new groovy.json.JsonSlurper().parse(file('../../package.json'))
 
 android {
     namespace 'cn.yiriyoushu.campuslife'
@@ -15,8 +16,8 @@ android {
         applicationId 'cn.yiriyoushu.campuslife'
         minSdk 26
         targetSdk 35
-        versionCode 2
-        versionName '1.1.0'
+        versionCode(packageMetadata.androidVersionCode as int)
+        versionName packageMetadata.version
     }
 
     buildTypes {

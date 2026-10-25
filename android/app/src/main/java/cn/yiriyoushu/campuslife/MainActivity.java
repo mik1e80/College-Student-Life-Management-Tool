@@ -95,7 +95,7 @@ public final class MainActivity extends Activity {
         settings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
         settings.setJavaScriptCanOpenWindowsAutomatically(false);
         settings.setSupportMultipleWindows(false);
-        settings.setUserAgentString(settings.getUserAgentString() + " YiriAndroid/1.1.0");
+        settings.setUserAgentString(settings.getUserAgentString() + " YiriAndroid/" + BuildConfig.VERSION_NAME);
         WebView.setWebContentsDebuggingEnabled(BuildConfig.DEBUG);
 
         WebViewAssetLoader loader = new WebViewAssetLoader.Builder()

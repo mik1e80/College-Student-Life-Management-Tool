@@ -5,7 +5,9 @@ import { dirname, resolve, delimiter } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const [inputArg, outputArg = 'download-site/yiri-1.1.0.apk'] = process.argv.slice(2);
+const packageMetadata = JSON.parse(readFileSync(resolve(root, 'package.json'), 'utf8'));
+const filename = `yiri-${packageMetadata.version}.apk`;
+const [inputArg, outputArg = `download-site/${filename}`] = process.argv.slice(2);
 if (!inputArg) throw Error('Usage: node scripts/android-sign.mjs <unsigned.apk> [signed.apk]');
 const input = resolve(root, inputArg), output = resolve(root, outputArg);
 const local = resolve(root, '.local/signing'), classes = resolve(root, '.local/classes');
@@ -33,7 +35,7 @@ if (!existsSync(keystore)) run('keytool', ['-genkeypair', '-storetype', 'PKCS12'
 run('javac', ['-encoding', 'UTF-8', '-cp', lib, '-d', classes, resolve(root, 'scripts/ApkReleaseSigner.java')]);
 const verification = JSON.parse(run('java', ['-cp', `${classes}${delimiter}${lib}`, 'ApkReleaseSigner', input, output, keystore, config.alias], true).trim());
 const sha256 = createHash('sha256').update(readFileSync(output)).digest('hex');
-const metadata = { version: '1.1.0', versionCode: 2, packageId: 'cn.yiriyoushu.campuslife', minAndroid: '8.0', filename: 'yiri-1.1.0.apk', bytes: statSync(output).size, sha256, ...verification };
+const metadata = { version: packageMetadata.version, versionCode: packageMetadata.androidVersionCode, packageId: 'cn.yiriyoushu.campuslife', minAndroid: '8.0', filename, bytes: statSync(output).size, sha256, ...verification };
 writeFileSync(resolve(dirname(output), 'release.json'), JSON.stringify(metadata, null, 2) + '\n');
-writeFileSync(output + '.sha256', `${sha256}  yiri-1.1.0.apk\n`);
+writeFileSync(output + '.sha256', `${sha256}  ${filename}\n`);
 console.log(JSON.stringify({ output, ...metadata }));

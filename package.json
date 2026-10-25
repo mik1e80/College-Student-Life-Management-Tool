@@ -1,6 +1,7 @@
 {
   "name": "campus-life",
-  "version": "1.1.0",
+  "version": "1.2.0",
+  "androidVersionCode": 3,
   "private": true,
   "type": "module",
   "scripts": { "dev": "node server.mjs", "test": "node --test tests/*.test.mjs", "android:prepare": "node scripts/android-prepare.mjs", "android:sign": "node scripts/android-sign.mjs" }

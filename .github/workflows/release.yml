@@ -4,14 +4,14 @@ on:
   push:
     branches: [main]
     paths:
-      - 'download-site/yiri-1.1.0.apk'
+      - 'download-site/*.apk'
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: release-v1.1.0
+  group: release-android
   cancel-in-progress: false
 
 jobs:
@@ -29,7 +29,10 @@ jobs:
         with:
           node-version: '22'
       - name: Verify APK size, SHA-256, and release metadata
-        run: node scripts/verify-release.mjs
+        run: |
+          node scripts/verify-release.mjs
+          version=$(node -p "require('./package.json').version")
+          echo "APP_VERSION=$version" >> "$GITHUB_ENV"
       - name: Verify the actual APK signature with Android build tools
         shell: bash
         run: |
@@ -44,7 +47,7 @@ jobs:
             echo 'No executable apksigner was found in the runner Android SDK.' >&2
             exit 1
           fi
-          verification="$(LC_ALL=C "$apksigner_path" verify --verbose --print-certs download-site/yiri-1.1.0.apk)"
+          verification="$(LC_ALL=C "$apksigner_path" verify --verbose --print-certs "download-site/yiri-$APP_VERSION.apk")"
           printf '%s\n' "$verification"
           if ! grep -Eq '^Verified using v2 scheme .*: true$' <<< "$verification"; then
             echo 'The APK did not verify with APK Signature Scheme v2.' >&2
@@ -58,16 +61,17 @@ jobs:
           RELEASE_COMMIT: ${{ github.sha }}
         run: |
           set -euo pipefail
-          tag='v1.1.0'
-          title='一日有数 v1.1.0 · 安卓安装包'
-          notes='docs/releases/v1.1.0.md'
+          tag="v$APP_VERSION"
+          title="一日有数 $tag · 安卓安装包"
+          notes="docs/releases/$tag.md"
           test -s "$notes"
           if ! gh release view "$tag" --json tagName > /dev/null 2>&1; then
             gh release create "$tag" --target "$RELEASE_COMMIT" --draft --title "$title" --notes-file "$notes"
           fi
-          assets=(download-site/yiri-1.1.0.apk download-site/yiri-1.1.0.apk.sha256 download-site/release.json)
-          shopt -s nullglob
-          assets+=(download-site/*.zip)
+          assets=("download-site/yiri-$APP_VERSION.apk" "download-site/yiri-$APP_VERSION.apk.sha256" download-site/release.json)
+          if [[ -f "download-site/yiri-download-page-$APP_VERSION.zip" ]]; then
+            assets+=("download-site/yiri-download-page-$APP_VERSION.zip")
+          fi
           gh release upload "$tag" "${assets[@]}" --clobber
           gh release edit "$tag" --draft=false --latest --title "$title" --notes-file "$notes"
           gh release view "$tag" --json url --jq '.url'

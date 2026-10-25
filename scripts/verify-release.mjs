@@ -6,7 +6,8 @@ import { fileURLToPath } from 'node:url';
 // This validates the committed release manifest. CI separately verifies the
 // actual APK signature with the Android SDK's apksigner before publishing.
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const filename = 'yiri-1.1.0.apk';
+const packageMetadata = JSON.parse(readFileSync(resolve(root, 'package.json'), 'utf8'));
+const filename = `yiri-${packageMetadata.version}.apk`;
 const apk = resolve(root, 'download-site', filename);
 const manifest = JSON.parse(readFileSync(resolve(root, 'download-site/release.json'), 'utf8'));
 
@@ -14,7 +15,7 @@ function requireValue(condition, message) {
   if (!condition) throw new Error(message);
 }
 
-requireValue(manifest.version === '1.1.0', 'Release version must be 1.1.0');
+requireValue(manifest.version === packageMetadata.version, 'Release version must match package.json');
 requireValue(manifest.filename === filename, `Release filename must be ${filename}`);
 requireValue(manifest.verified === true, 'Release manifest must record verified: true');
 requireValue(manifest.v2 === true, 'Release manifest must record v2: true');

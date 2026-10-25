@@ -89,6 +89,9 @@ try {
   await until("!document.querySelector('#actual-form') && !!document.querySelector('[data-item]')", 'System Back returns from detail to the category');
   await screenshot('03-category');
 
+  // Mimic an installed 1.1.0 ledger before restarting the upgraded app.
+  await client.evaluate("(() => { const old = JSON.parse(localStorage.getItem('yiri-campus-life-v1')); old.schema=1; delete old.cadences; delete old.periodPlans; delete old.periodRecords; localStorage.setItem('yiri-campus-life-v1',JSON.stringify(old)); return true; })()");
+
   client.close();
   adb('shell', 'am', 'force-stop', app);
   adb('shell', 'am', 'start', '-n', `${app}/.MainActivity`);
@@ -101,12 +104,29 @@ try {
 
   await client.evaluate("document.querySelector('.mobile-nav [data-nav=\"plan\"]').click(); true");
   await until("!!document.querySelector('#plan-form')", 'Monthly plan screen opens');
-  await client.evaluate("(() => { const values = ['8','15','12']; document.querySelectorAll('[data-plan-item]').forEach((input,i) => { input.value=values[i]; input.dispatchEvent(new Event('input',{bubbles:true})); }); document.querySelector('#plan-form').requestSubmit(); return true; })()");
-  await until("Object.keys(JSON.parse(localStorage.getItem('yiri-campus-life-v1')).plans).length === 3", 'Monthly budget is saved through the UI');
+  await client.evaluate("(() => { const values = ['8','30','120'], units=['day','month','year']; document.querySelectorAll('[data-plan-item]').forEach((input,i) => { input.value=values[i]; input.dispatchEvent(new Event('input',{bubbles:true})); const select = document.querySelector('[data-plan-unit=\"'+input.dataset.planItem+'\"]'); select.value=units[i]; select.dispatchEvent(new Event('change',{bubbles:true})); }); document.querySelector('#plan-form').requestSubmit(); return true; })()");
+  await until("(() => { const s=JSON.parse(localStorage.getItem('yiri-campus-life-v1')); return s.schema===2 && Object.keys(s.plans).length===1 && Object.keys(s.periodPlans).length===2; })()", 'Daily, monthly and yearly budgets save with automatic old-ledger migration');
+  assert.equal(await client.evaluate("Object.values(JSON.parse(localStorage.getItem('yiri-campus-life-v1')).records).some(r=>r.cents===850)"),true);
+  report.push('Old daily expense survives schema migration');
   await screenshot('04-month-plan');
+  await client.evaluate("document.querySelector('.mobile-nav [data-nav=\"home\"]').click(); document.querySelector('[data-category=\"food\"]').click(); document.querySelector('[data-item=\"meal-1\"]').click(); true");
+  await until("!!document.querySelector('#actual-input')", 'Monthly actual editor opens');
+  await client.evaluate("(() => { const input=document.querySelector('#actual-input'); input.value='29'; input.dispatchEvent(new Event('input',{bubbles:true})); document.querySelector('#actual-form').requestSubmit(); return true; })()");
+  await until("Object.values(JSON.parse(localStorage.getItem('yiri-campus-life-v1')).periodRecords).some(r=>r.cents===2900)", 'A monthly actual is stored once');
+  await client.evaluate("Array.from(document.querySelectorAll('[data-date]')).at(-1).click(); true");
+  await until("document.querySelector('#actual-input')?.value==='29.00'", 'Selecting another date in the same month reuses the same actual');
+  assert.equal(await client.evaluate("Object.keys(JSON.parse(localStorage.getItem('yiri-campus-life-v1')).periodRecords).length"),1);
+  await screenshot('07-monthly-actual');
+  await client.evaluate("document.querySelector('.mobile-nav [data-nav=\"home\"]').click(); document.querySelector('[data-category=\"food\"]').click(); document.querySelector('[data-item=\"meal-2\"]').click(); true");
+  await until("!!document.querySelector('#actual-input')", 'Yearly actual editor opens');
+  await client.evaluate("(() => { const input=document.querySelector('#actual-input'); input.value='118'; input.dispatchEvent(new Event('input',{bubbles:true})); document.querySelector('#actual-form').requestSubmit(); return true; })()");
+  await until("Object.values(JSON.parse(localStorage.getItem('yiri-campus-life-v1')).periodRecords).some(r=>r.cents===11800)", 'A yearly actual is stored once');
+  await screenshot('08-yearly-actual');
   await client.evaluate("document.querySelector('.mobile-nav [data-nav=\"report\"]').click(); true");
   await until("!!document.querySelector('.report-section')", 'Spending report opens');
   await screenshot('05-report');
+  await client.evaluate("document.querySelector('[data-report-mode=\"year\"]').click(); true");
+  await until("document.body.innerText.includes('全年各周期预算合计')", 'Annual report is available');
   await client.evaluate("document.querySelector('.mobile-nav [data-nav=\"settings\"]').click(); true");
   await until("document.body.innerText.includes('安卓版已安装')", 'Native app replaces browser-install instructions');
   await screenshot('06-settings');
