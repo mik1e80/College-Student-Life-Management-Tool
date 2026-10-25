@@ -261,6 +261,11 @@ public final class MainActivity extends Activity {
                 ReminderScheduler.channel(MainActivity.this);
                 if(Build.VERSION.SDK_INT>=33 && checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS)!=android.content.pm.PackageManager.PERMISSION_GRANTED)
                     requestPermissions(new String[]{android.Manifest.permission.POST_NOTIFICATIONS},704);
+                else if(!ReminderScheduler.notificationsAllowed(MainActivity.this)) {
+                    Intent settings=new Intent(android.provider.Settings.ACTION_APP_NOTIFICATION_SETTINGS)
+                            .putExtra(android.provider.Settings.EXTRA_APP_PACKAGE,getPackageName());
+                    try{startActivity(settings);}catch(ActivityNotFoundException unavailable){Toast.makeText(MainActivity.this,"请在手机设置中开启双衡通知",Toast.LENGTH_LONG).show();}
+                }
                 else reminderPermissionChanged();
             });
         }
