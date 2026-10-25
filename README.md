@@ -2,9 +2,9 @@
 
 大学生生活费管理工具，提供安卓 APK 和手机网页版本。安卓包内置账本页面，安装后可离线使用，不需要 Google Play 服务。
 
-**[下载安卓版 APK](https://github.com/mik1e80/College-Student-Life-Management-Tool/releases/download/v1.2.1/yiri-1.2.1.apk)** · [GitHub 版本页面](https://github.com/mik1e80/College-Student-Life-Management-Tool/releases/tag/v1.2.1) · Android 8.0 及以上、可正常工作的现代系统 WebView。
+**[下载安卓版 APK](https://github.com/mik1e80/College-Student-Life-Management-Tool/releases/download/v1.3.0/yiri-1.3.0.apk)** · [GitHub 版本页面](https://github.com/mik1e80/College-Student-Life-Management-Tool/releases/tag/v1.3.0) · Android 8.0 及以上、可正常工作的现代系统 WebView。
 
-1.2.1 修复预算计划只能添加一次小类的问题：每个大类始终保留添加入口，连续添加时保留未保存的金额和周期。支持每项独立的天 / 月 / 年周期，预算和实际都按所选周期填写。使用同一签名覆盖安装可保留账本，请勿先卸载。
+1.3.0 新增分类管理：大类、小类可改名，没有任何实际金额记录的分类可删除。改名保留原预算和账目；0 元也属于已记录。保留连续添加小类、天 / 月 / 年预算与实际功能。使用同一签名覆盖安装可保留账本，请勿先卸载。
 
 **[打开一日有数](https://campus-life-yiri-20261025.my-team-1261.chatgpt.site)** · 公开访问，无需登录。手机安装说明见 [使用说明](docs/usage.md)。
 
@@ -26,7 +26,7 @@ node --test tests/*.test.mjs
 
 ## 已实现
 
-- 八个初始大类，餐饮自带早、午、晚餐。三列九宫格排列，可添加大类和小类，不提供删除。
+- 八个初始大类，餐饮自带早、午、晚餐。三列九宫格排列，可添加和改名；没有实际记录的分类可删除，有记录（含 0 元）时保留。
 - 每项选择按天、月或年设置预算与实际；月预算每月独立，年预算同年共用。
 - 金额以整数分存储；未设置、未记录和 0 元分别处理。
 - 本期金额可修改，按天次日锁定、按月下月锁定、按年次年锁定；历史空缺只可补录一次。
@@ -62,6 +62,7 @@ node --test tests/*.test.mjs
 - [安卓版 1.1.0 发行说明](docs/releases/v1.1.0.md)
 - [安卓版 1.2.0 发行说明](docs/releases/v1.2.0.md)
 - [安卓版 1.2.1 发行说明](docs/releases/v1.2.1.md)
+- [安卓版 1.3.0 发行说明](docs/releases/v1.3.0.md)
 
 ## 界面预览
 

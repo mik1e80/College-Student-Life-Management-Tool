@@ -41,7 +41,7 @@ test('worker never intercepts cross-origin requests or writes', () => {
   assert.equal(intercepted, 0);
 });
 test('activation preserves unrelated application caches', async () => {
-  const w = worker({ names: ['yiri-v0.9.0', 'yiri-v1.2.1', 'another-app-v1'] }); let pending;
+  const w = worker({ names: ['yiri-v0.9.0', 'yiri-v1.3.0', 'another-app-v1'] }); let pending;
   w.listeners.activate({ waitUntil: promise => { pending = promise; } }); await pending;
   assert.deepEqual(w.deleted, ['yiri-v0.9.0']);
 });

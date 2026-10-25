@@ -77,6 +77,46 @@ export function addItem(state, categoryId, rawName, today = dateKey()) {
   const item = { id: uid(), categoryId, name, createdOn: today };
   state.items.push(item); return item;
 }
+export function renameCategory(state, id, rawName) {
+  const category = state.categories.find(x => x.id === id);
+  if (!category) throw Error('大类不存在');
+  const name = nameCheck(rawName);
+  if (state.categories.some(x => x.id !== id && x.name === name)) throw Error('已存在同名大类');
+  category.name = name;
+}
+export function renameItem(state, id, rawName) {
+  const item = state.items.find(x => x.id === id);
+  if (!item) throw Error('小类不存在');
+  const name = nameCheck(rawName);
+  if (state.items.some(x => x.id !== id && x.categoryId === item.categoryId && x.name === name)) throw Error('该大类下已存在同名小类');
+  item.name = name;
+}
+const dailyItemId = key => key.slice(key.indexOf(':') + 1);
+const periodItemId = key => key.slice(key.indexOf(':', key.indexOf(':') + 1) + 1);
+export function hasItemRecords(state, id) {
+  // Presence, including zero and backfills, protects every date and former cadence.
+  return Object.keys(state.records).some(key => dailyItemId(key) === id)
+    || Object.keys(state.periodRecords || {}).some(key => periodItemId(key) === id);
+}
+export function canDeleteCategory(state, id) {
+  return state.categories.some(x => x.id === id)
+    && !state.items.some(x => x.categoryId === id && hasItemRecords(state, x.id));
+}
+export function deleteItem(state, id) {
+  if (!state.items.some(x => x.id === id)) throw Error('小类不存在');
+  if (hasItemRecords(state, id)) throw Error('此小类已有实际金额记录（含 0 元），不能删除');
+  state.items = state.items.filter(x => x.id !== id);
+  for (const key of Object.keys(state.plans)) if (dailyItemId(key) === id) delete state.plans[key];
+  for (const key of Object.keys(state.periodPlans || {})) if (periodItemId(key) === id) delete state.periodPlans[key];
+  if (state.cadences) delete state.cadences[id];
+}
+export function deleteCategory(state, id) {
+  if (!state.categories.some(x => x.id === id)) throw Error('大类不存在');
+  if (!canDeleteCategory(state, id)) throw Error('此大类下已有实际金额记录（含 0 元），不能删除');
+  const ids = state.items.filter(x => x.categoryId === id).map(x => x.id);
+  for (const itemId of ids) deleteItem(state, itemId);
+  state.categories = state.categories.filter(x => x.id !== id);
+}
 export function itemExists(state, itemId, date) {
   return validDate(date) && state.items.some(x => x.id === itemId && x.createdOn <= date);
 }
