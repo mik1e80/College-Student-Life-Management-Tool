@@ -60,7 +60,11 @@ try {
   await screenshot('14-foreground-reminder');
   checks.push('Foreground task reminder is a visible native popup');
   adb('shell','input','keyevent','4');adb('shell','input','keyevent','3');
-  client.close();client=null;await pause(500);adb('shell','am','kill',app);
+  client.close();client=null;await pause(500);
+  // Allow-while-idle alarms temporarily protect the UID, so am kill may do nothing.
+  // Kill our debuggable process as its own UID without marking the package force-stopped.
+  const pid=adb('shell','pidof',app).split(/\s+/)[0];
+  if(pid)adb('shell','run-as',app,'kill','-9',pid);
   await until(()=>{try{return !adb('shell','pidof',app);}catch{return true;}},'App process exits normally while its next alarm remains registered');
   await until(()=>adb('shell','cmd','notification','list').includes('start-warning-test'),'A real start warning is delivered after the app process was killed',80000);
   adb('shell','cmd','statusbar','expand-notifications');await screenshot('15-background-reminder');adb('shell','cmd','statusbar','collapse');
