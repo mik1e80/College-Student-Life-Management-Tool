@@ -96,7 +96,13 @@ try {
   // Persistence completes before the asynchronous form handler resets its draft.
   // Wait for the user-visible completion before exercising native navigation.
   await until("document.querySelector('#toast').textContent.startsWith('已保存') && document.querySelector('#actual-input')?.value==='8.50'", 'The expense form has completed saving before System Back');
-  assert.match(adb('shell','dumpsys','window','windows'),/mCurrentFocus=.*cn\.yiriyoushu\.campuslife/);
+  let focus='';
+  for(let attempt=0;attempt<40;attempt++){
+    focus=adb('shell','dumpsys','window');
+    if(/mCurrentFocus=.*cn\.yiriyoushu\.campuslife/.test(focus))break;
+    await pause(250);
+  }
+  assert.match(focus,/mCurrentFocus=.*cn\.yiriyoushu\.campuslife/);
   adb('shell', 'input', 'keyevent', '4');
   await until("!document.querySelector('#actual-form') && !!document.querySelector('[data-item]')", 'System Back returns from detail to the category');
   await screenshot('03-category');
