@@ -142,5 +142,6 @@ jobs:
             android/reminder-diagnostics.txt
             android/clock-report.json
             android/clock-diagnostics.txt
+            android/clock-status.json
             android/screenshots/*.png
           if-no-files-found: ignore

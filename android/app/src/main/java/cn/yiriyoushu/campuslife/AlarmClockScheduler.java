@@ -80,7 +80,7 @@ final class AlarmClockScheduler {
         synchronized(MainActivity.LEDGER_LOCK) {
             JSONObject out=new JSONObject();try {
                 out.put("notifications",allowed(c)).put("exact",ReminderScheduler.exactAllowed(c)).put("fullScreen",fullScreen(c)).put("snoozes",data(c,"snoozes"));
-                JSONObject live=new JSONObject(AlarmRingingService.snapshot);out.put("ringing",live.optBoolean("ringing")).put("soundPlaying",live.optBoolean("soundPlaying"));
+                JSONObject live=new JSONObject(AlarmRingingService.snapshot);out.put("ringing",live.optBoolean("ringing")).put("soundPlaying",live.optBoolean("soundPlaying")).put("audioError",live.optString("audioError"));
                 long now=System.currentTimeMillis(),next=0;JSONObject receipts=data(c,"receipts");for(JSONObject e:events(c,now))if(e.optLong("at")>now&&!receipts.has(e.optString("key"))){next=e.getLong("at");break;}
                 out.put("nextAt",next);
             }catch(Exception ignored){}return out;

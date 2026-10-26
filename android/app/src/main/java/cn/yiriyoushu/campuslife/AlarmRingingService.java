@@ -15,6 +15,7 @@ public final class AlarmRingingService extends Service {
     private final Handler handler=new Handler(Looper.getMainLooper());
     private MediaPlayer player;private Vibrator vibrator;private PowerManager.WakeLock wake;
     private AudioFocusRequest focus;private boolean playing,prepared;private long expires;
+    private int focusRetries;private String audioError="";
     static final int NOTIFICATION=4901;
     @Override public IBinder onBind(Intent intent){return null;}
     @Override public void onCreate(){super.onCreate();instance=this;AlarmClockScheduler.channel(this);}
@@ -38,17 +39,21 @@ public final class AlarmRingingService extends Service {
         return START_NOT_STICKY;
     }
     private void startTone(int type) {
+        if(active.isEmpty()||player!=null)return;
         try {
             AudioAttributes attrs=new AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_ALARM).setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION).build();
             if(focus==null){focus=new AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT).setAudioAttributes(attrs).setOnAudioFocusChangeListener(change->{
                 try{if(change==AudioManager.AUDIOFOCUS_LOSS){stopRing();}else if(change==AudioManager.AUDIOFOCUS_LOSS_TRANSIENT&&playing){player.pause();playing=false;updateSnapshot();}else if(change==AudioManager.AUDIOFOCUS_GAIN&&prepared&&player!=null){player.start();playing=true;updateSnapshot();}}catch(Exception ignored){}
             }).build();}
-            if(getSystemService(AudioManager.class).requestAudioFocus(focus)!=AudioManager.AUDIOFOCUS_REQUEST_GRANTED)return;
-            player=new MediaPlayer();player.setAudioAttributes(attrs);player.setLooping(true);player.setDataSource(this,RingtoneManager.getDefaultUri(type));
-            player.setOnPreparedListener(p->{prepared=true;p.start();playing=true;updateSnapshot();});
-            player.setOnErrorListener((p,what,extra)->{releasePlayer();if(type==RingtoneManager.TYPE_ALARM)startTone(RingtoneManager.TYPE_NOTIFICATION);return true;});
+            int result=getSystemService(AudioManager.class).requestAudioFocus(focus);
+            if(result!=AudioManager.AUDIOFOCUS_REQUEST_GRANTED){audioError="Audio focus not granted: "+result;updateSnapshot();android.util.Log.w("AlarmClock",audioError);if(focusRetries++<20)handler.postDelayed(()->startTone(type),300);return;}
+            player=new MediaPlayer();player.setAudioAttributes(attrs);player.setLooping(true);
+            if(type==0){try(android.content.res.AssetFileDescriptor sound=getResources().openRawResourceFd(R.raw.alarm_fallback)){player.setDataSource(sound.getFileDescriptor(),sound.getStartOffset(),sound.getLength());}}
+            else player.setDataSource(this,RingtoneManager.getDefaultUri(type));
+            player.setOnPreparedListener(p->{prepared=true;p.start();playing=true;audioError="";android.util.Log.i("AlarmClock","Alarm audio playing, source="+type);updateSnapshot();});
+            player.setOnErrorListener((p,what,extra)->{audioError="MediaPlayer error "+what+"/"+extra+", source="+type;android.util.Log.e("AlarmClock",audioError);releasePlayer();if(type==RingtoneManager.TYPE_ALARM)startTone(RingtoneManager.TYPE_NOTIFICATION);else if(type!=0)startTone(0);return true;});
             player.prepareAsync();
-        }catch(Exception error){releasePlayer();if(type==RingtoneManager.TYPE_ALARM)startTone(RingtoneManager.TYPE_NOTIFICATION);}
+        }catch(Exception error){audioError=error.toString();android.util.Log.e("AlarmClock","Cannot load alarm audio, source="+type,error);releasePlayer();if(type==RingtoneManager.TYPE_ALARM)startTone(RingtoneManager.TYPE_NOTIFICATION);else if(type!=0)startTone(0);}
     }
     private void releasePlayer(){playing=false;prepared=false;if(player!=null){try{player.release();}catch(Exception ignored){}player=null;}updateSnapshot();}
     private void vibrate(){
@@ -56,7 +61,7 @@ public final class AlarmRingingService extends Service {
         boolean enabled=false;for(JSONObject e:active.values())if(e.optBoolean("vibrate",true))enabled=true;
         if(vibrator!=null){vibrator.cancel();if(enabled&&vibrator.hasVibrator())vibrator.vibrate(VibrationEffect.createWaveform(new long[]{0,500,700},0));}
     }
-    private void updateSnapshot(){try{snapshot=new JSONObject().put("ringing",!active.isEmpty()).put("soundPlaying",playing).put("events",new JSONArray(active.values())).toString();}catch(Exception ignored){}}
+    private void updateSnapshot(){try{snapshot=new JSONObject().put("ringing",!active.isEmpty()).put("soundPlaying",playing).put("audioError",audioError).put("events",new JSONArray(active.values())).toString();}catch(Exception ignored){}}
     static void reconcile(){AlarmRingingService service=instance;if(service!=null)service.handler.post(()->{
         synchronized(MainActivity.LEDGER_LOCK){service.active.entrySet().removeIf(item->AlarmClockScheduler.find(service,item.getValue().optString("id"),item.getValue().optString("generation"))==null);}
         if(service.active.isEmpty()||!AlarmClockScheduler.allowed(service))service.stopRing();

@@ -53,5 +53,5 @@ try {
   await until(()=>client.evaluate("!!document.querySelector('[data-category]')"),'Original ledger reloads after the alarm checks');
   const restored=JSON.parse(await client.evaluate('AndroidApp.loadLedger()'));assert.deepEqual(restored.records,original.records);assert.equal(restored.timeEntries.length,6);assert.deepEqual(restored.alarms,original.alarms);
   await writeFile('android/clock-report.json',JSON.stringify({passed:true,checks},null,2));
-}catch(error){try{await screenshot('clock-failure');await writeFile('android/clock-diagnostics.txt',adb('logcat','-d','-t','500')+'\n'+adb('shell','dumpsys','alarm'));}catch{}await writeFile('android/clock-report.json',JSON.stringify({passed:false,checks,error:error.message},null,2));throw error;}
+}catch(error){try{if(client)await writeFile('android/clock-status.json',await client.evaluate('AndroidApp.clockStatus()'));await screenshot('clock-failure');await writeFile('android/clock-diagnostics.txt',adb('logcat','-d','-s','AlarmClock:V','MediaPlayer:V','MediaPlayerNative:V','AudioManager:V','MediaFocusControl:V','AudioService:V','AndroidRuntime:E')+'\n'+adb('shell','dumpsys','alarm'));}catch{}await writeFile('android/clock-report.json',JSON.stringify({passed:false,checks,error:error.message},null,2));throw error;}
 finally{client?.close();try{adb('forward','--remove','tcp:9222');}catch{}}
