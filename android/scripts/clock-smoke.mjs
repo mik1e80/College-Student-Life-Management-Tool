@@ -47,7 +47,7 @@ try {
   await until(()=>client.evaluate("JSON.parse(AndroidApp.loadLedger()).alarms[0].days.join(',')==='1,2,3,4,5'"),'The alarm editor saves weekday repetition independently from time tasks');
   await client.evaluate("document.querySelector('[data-toggle-alarm]').click();true");
   await until(async()=>JSON.parse(await client.evaluate('AndroidApp.clockStatus()')).nextAt===0,'Switching the alarm off cancels its recurring schedule');
-  await client.evaluate("document.querySelector('[data-edit-alarm]').click();document.querySelector('#delete-alarm').click();true");tapText('确定');
+  await client.evaluate("document.querySelector('[data-edit-alarm]').click();setTimeout(()=>document.querySelector('#delete-alarm').click(),0);true");tapText('确定');
   await until(()=>client.evaluate('JSON.parse(AndroidApp.loadLedger()).alarms.length===0'),'Deleting the alarm removes its row and pending ringing state');
   const raw=JSON.stringify({...original,revision:original.revision+100});
   await client.evaluate(`AndroidApp.saveLedger(${JSON.stringify(raw)});location.reload();true`);
