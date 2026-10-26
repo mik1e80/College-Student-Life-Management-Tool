@@ -1,6 +1,7 @@
 import { createState, readState, dateKey, datesInMonth, shiftMonth, parseMoney, addCategory, addItem, getPlan, setPlans, getRecord, saveActual, summarize, itemExists, UNITS, UNIT_LABELS, getUnit, getPeriod, datesInYear, renameCategory, renameItem, hasItemRecords, canDeleteCategory, deleteItem, deleteCategory } from './core.js';
 
 import { TIME_PRESETS, clockLabel, timeSpan, shiftTimeDate, saveTimeEntry, deleteTimeEntry, dayTimeline, timeSummary, copyTimeDay } from './time-core.js';
+import {createAlarmUI} from './alarm-ui.js';
 import {reminderSelect,createReminderUI} from './reminder-ui.js';
 import { createLedgerStore } from './ledger-store.js';
 
@@ -51,8 +52,8 @@ let planMonth = today.slice(0, 7);
 let reportMonth = today.slice(0, 7);
 let reportMode = 'month';
 let view = 'home', currentCategory = null, currentItem = null, state, storageBroken = false;
-let installPrompt = null, draftDirty = false, reminderUI;
-const navs = [['home', 'grid', '生活总览'], ['time', 'clock', '时间规划'], ['plan', 'book', '预算计划'], ['report', 'chart', '支出统计'], ['settings', 'settings', '我的账本']];
+let installPrompt = null, draftDirty = false, reminderUI, alarmUI;
+const navs = [['home', 'grid', '生活总览'], ['time', 'clock', '时间规划'], ['alarm','clock','闹钟'], ['plan', 'book', '预算计划'], ['report', 'chart', '支出统计'], ['settings', 'settings', '我的账本']];
 try {
   const existing = ledgerStore.load();
   state = existing || createState(today);
@@ -101,12 +102,12 @@ function render() {
   if (['category', 'detail'].includes(view) && !state.categories.some(x => x.id === currentCategory)) { currentCategory = null; currentItem = null; view = 'home'; }
   const category = state.categories.find(x => x.id === currentCategory);
   const name = navs.find(x => x[0] === view)?.[2] || category?.name || '生活费';
-  app.innerHTML = `<div class="shell"><aside class="sidebar"><div class="brand"><img src="./icon.svg" alt=""><div><strong>双衡</strong><small>TIME & MONEY</small></div></div><div class="side-caption">MY CAMPUS LIFE</div>${navMarkup()}<div class="side-note"><div class="sprout">${icon('leaf')}</div><p>把生活安排好，<br>也给快乐留一点预算。</p><small>从今天的一笔开始</small></div><div class="side-footer"><span class="dot"></span>时间与收支，从容安排</div></aside><main class="main"><header class="topbar"><span class="top-breadcrumb">我的校园生活&nbsp; / &nbsp;${esc(name)}</span><div class="mobile-brand"><img src="./icon.svg" alt="">双衡</div><div class="right"><span>${esc(dateLabel(today))}</span><span class="device-label">本机账本</span><span class="avatar" aria-label="学生账本">同学</span></div></header>${view === 'home' ? home() : view === 'time' ? timePage() : view === 'category' ? categoryPage() : view === 'detail' ? detail() : view === 'plan' ? planPage() : view === 'report' ? report() : settings()}<footer class="bottom-note">${icon('leaf')}认真生活的每一笔，都算数。</footer></main>${navMarkup(true)}</div>`;
+  app.innerHTML = `<div class="shell"><aside class="sidebar"><div class="brand"><img src="./icon.svg" alt=""><div><strong>双衡</strong><small>TIME & MONEY</small></div></div><div class="side-caption">MY CAMPUS LIFE</div>${navMarkup()}<div class="side-note"><div class="sprout">${icon('leaf')}</div><p>把生活安排好，<br>也给快乐留一点预算。</p><small>从今天的一笔开始</small></div><div class="side-footer"><span class="dot"></span>时间与收支，从容安排</div></aside><main class="main"><header class="topbar"><span class="top-breadcrumb">我的校园生活&nbsp; / &nbsp;${esc(name)}</span><div class="mobile-brand"><img src="./icon.svg" alt="">双衡</div><div class="right"><span>${esc(dateLabel(today))}</span><span class="device-label">本机账本</span><span class="avatar" aria-label="学生账本">同学</span></div></header>${view === 'home' ? home() : view === 'time' ? timePage() : view === 'alarm' ? `${heading('YOUR DAILY ALARMS','闹钟','按自己的节奏，准时开始。')}${alarmUI.page()}` : view === 'category' ? categoryPage() : view === 'detail' ? detail() : view === 'plan' ? planPage() : view === 'report' ? report() : settings()}<footer class="bottom-note">${icon('leaf')}认真生活的每一笔，都算数。</footer></main>${navMarkup(true)}</div>`;
   if (isAndroidApp && view === 'settings') {
     const installPanel = app.querySelector('[data-action="install"]')?.closest('section');
-    if (installPanel) installPanel.innerHTML = `<h2>${icon('phone')}安卓版已安装</h2><p>已安装双衡 1.6.0。时间规划、记账与统计均可离线使用，不依赖下载网站。</p><p class="stat-foot">数据保存在本应用中；卸载或清除应用数据会删除账本，请定期导出备份。网页账本与安卓应用数据独立保存。</p>`;
+    if (installPanel) installPanel.innerHTML = `<h2>${icon('phone')}安卓版已安装</h2><p>已安装双衡 1.7.0。时间规划、记账与统计均可离线使用，不依赖下载网站。</p><p class="stat-foot">数据保存在本应用中；卸载或清除应用数据会删除账本，请定期导出备份。网页账本与安卓应用数据独立保存。</p>`;
   }
-  bind();
+  bind();if(view==='alarm')alarmUI.bind(app);
 }
 function heading(eyebrow, title, subtitle, right = '', back = '') {
   return `<div class="page-head"><div>${back}<div class="eyebrow">${eyebrow}</div><h1>${esc(title)}</h1><p>${subtitle}</p></div>${right}</div>`;
@@ -505,6 +506,9 @@ function openReminderEntry(date,id) {
 }
 window.YiriOpenReminder=openReminderEntry;
 window.YiriReminderPermissionsChanged=()=>reminderUI?.refreshStatus();
+window.YiriClockChanged=()=>alarmUI?.refreshStatus();
+window.YiriOpenClock=()=>{if(leaveDraft())navigate('alarm');};
+if(!storageBroken)alarmUI=createAlarmUI({modal,native:isAndroidApp?window.AndroidApp:null,load:()=>ledgerStore.load()||state,commit,refresh:()=>{if(view==='alarm'&&!modal.open&&!draftDirty){state=ledgerStore.load()||state;render();}},toast,escape:esc});
 if(!storageBroken)reminderUI=createReminderUI({modal,native:isAndroidApp?window.AndroidApp:null,load:()=>ledgerStore.load()||state,commit,render,toast,openEntry:openReminderEntry,escape:esc});
 window.addEventListener('beforeinstallprompt', event => { event.preventDefault(); installPrompt = event; });
 window.addEventListener('appinstalled', () => { installPrompt = null; toast('已安装到主屏幕'); });

@@ -243,6 +243,8 @@ public final class MainActivity extends Activity {
                     // Reminder failure must not turn a durable ledger save into a reported failure.
                     try { ReminderScheduler.sync(MainActivity.this); }
                     catch(Exception reminderError) { android.util.Log.e("TaskReminder","Unable to schedule",reminderError); }
+                    try { AlarmClockScheduler.sync(MainActivity.this); }
+                    catch(Exception clockError) { android.util.Log.e("AlarmClock","Unable to schedule",clockError); }
                     return true;
                 } catch (Exception error) {
                     if (stream != null) file.failWrite(stream);
@@ -253,6 +255,17 @@ public final class MainActivity extends Activity {
 
         @JavascriptInterface
         public String reminderStatus() { return ReminderScheduler.status(MainActivity.this).toString(); }
+
+        @JavascriptInterface public String clockStatus(){return AlarmClockScheduler.status(MainActivity.this).toString();}
+        @JavascriptInterface public void cancelClockSnooze(String id){AlarmClockScheduler.cancelSnooze(MainActivity.this,id);}
+        @JavascriptInterface public void openRingingClock(){runOnUiThread(()->{if(isTrustedPage())startActivity(new Intent(MainActivity.this,AlarmRingingActivity.class));});}
+        @JavascriptInterface public void requestClockNotifications(){runOnUiThread(()->{
+            if(!isTrustedPage())return;AlarmClockScheduler.channel(MainActivity.this);
+            if(Build.VERSION.SDK_INT>=33&&checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS)!=android.content.pm.PackageManager.PERMISSION_GRANTED)requestPermissions(new String[]{android.Manifest.permission.POST_NOTIFICATIONS},706);
+            else if(!AlarmClockScheduler.allowed(MainActivity.this))openClockSystemSettings("notifications");
+            else reminderPermissionChanged();
+        });}
+        @JavascriptInterface public void openClockSettings(String kind){runOnUiThread(()->{if(isTrustedPage())openClockSystemSettings(kind);});}
 
         @JavascriptInterface
         public void requestReminderNotifications() {
@@ -405,20 +418,30 @@ public final class MainActivity extends Activity {
 
     @Override public void onRequestPermissionsResult(int requestCode,String[] permissions,int[] results) {
         super.onRequestPermissionsResult(requestCode,permissions,results);
-        if(requestCode==704)reminderPermissionChanged();
+        if(requestCode==704||requestCode==706)reminderPermissionChanged();
     }
     private void reminderPermissionChanged() {
         try {ReminderScheduler.sync(this);}catch(Exception error){android.util.Log.e("TaskReminder","Unable to reschedule",error);}
+        try {AlarmClockScheduler.sync(this);}catch(Exception error){android.util.Log.e("AlarmClock","Unable to reschedule",error);}
         if(pageReady&&isTrustedPage())webView.evaluateJavascript("window.YiriReminderPermissionsChanged && window.YiriReminderPermissionsChanged()",null);
+        if(pageReady&&isTrustedPage())webView.evaluateJavascript("window.YiriClockChanged && window.YiriClockChanged()",null);
     }
     @Override protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);setIntent(intent);if(pageReady)openReminderIntent(intent);
     }
     private void openReminderIntent(Intent intent) {
+        if(intent.getBooleanExtra("openClock",false)){intent.removeExtra("openClock");webView.evaluateJavascript("window.YiriOpenClock && window.YiriOpenClock()",null);}
         String id=intent.getStringExtra("reminderId"),date=intent.getStringExtra("reminderDate");
         if(id==null||date==null||!isTrustedPage())return;
         intent.removeExtra("reminderId");intent.removeExtra("reminderDate");
         webView.evaluateJavascript("window.YiriOpenReminder && window.YiriOpenReminder("+JSONObject.quote(date)+","+JSONObject.quote(id)+")",null);
+    }
+    private void openClockSystemSettings(String kind){
+        Intent settings;
+        if("exact".equals(kind)&&Build.VERSION.SDK_INT>=31)settings=new Intent(android.provider.Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM).setData(Uri.parse("package:"+getPackageName()));
+        else if("full-screen".equals(kind)&&Build.VERSION.SDK_INT>=34)settings=new Intent(android.provider.Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT).setData(Uri.parse("package:"+getPackageName()));
+        else settings=new Intent(android.provider.Settings.ACTION_CHANNEL_NOTIFICATION_SETTINGS).putExtra(android.provider.Settings.EXTRA_APP_PACKAGE,getPackageName()).putExtra(android.provider.Settings.EXTRA_CHANNEL_ID,AlarmClockScheduler.CHANNEL);
+        try{startActivity(settings);}catch(ActivityNotFoundException e){Toast.makeText(this,"请在系统设置中允许双衡的闹钟权限",Toast.LENGTH_LONG).show();}
     }
     static boolean presentReminders(java.util.List<ReminderScheduler.Event> events) {
         MainActivity activity=visibleActivity.get();

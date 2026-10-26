@@ -10,7 +10,7 @@ const drawable = path.join(root, 'android', 'app', 'src', 'main', 'res', 'drawab
 // Keep the native bundle explicit. Download pages, APKs, and web service workers
 // must never accidentally become executable native-bridge content.
 const webFiles = [
-  'index.html', 'style.css', 'app.js', 'core.js', 'time-core.js', 'ledger-store.js', 'reminders.js', 'reminder-ui.js', 'icon.svg',
+  'index.html', 'style.css', 'app.js', 'core.js', 'alarms.js', 'alarm-ui.js', 'time-core.js', 'ledger-store.js', 'reminders.js', 'reminder-ui.js', 'icon.svg',
   'icon-192.png', 'icon-512.png', 'manifest.webmanifest',
 ];
 
