@@ -6,13 +6,15 @@
 
 1.6.0 新增本机任务提醒，按需使用通知和精确闹钟权限，以及开机恢复和振动权限。无联网权限。设置与系统限制详见 [任务提醒](reminders.md)。
 
+1.7.0 新增独立闹钟页。响铃期间使用前台播放和短时唤醒锁，锁屏大界面按需授权；关闭任务提醒不影响闹钟。详见 [独立闹钟](alarms.md)。
+
 ## 版本与支持范围
 
 | 项目 | 当前设定 |
 | --- | --- |
 | 应用名 | 双衡 |
 | applicationId | `cn.yiriyoushu.campuslife` |
-| versionName / versionCode | `1.6.0` / `9` |
+| versionName / versionCode | `1.7.0` / `10` |
 | 系统下限 | Android 8.0 / API 26 |
 | 编译 / 目标 SDK | API 35 |
 | Android Gradle Plugin | `8.7.3` |
