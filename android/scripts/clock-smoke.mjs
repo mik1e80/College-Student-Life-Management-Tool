@@ -33,8 +33,9 @@ try {
   await until(()=>{adb('shell','uiautomator','dump','/sdcard/clock-ui.xml');const xml=adb('shell','cat','/sdcard/clock-ui.xml');return xml.includes('起床验证')&&xml.includes('停止闹钟');},'The permitted lock-screen alarm activity opens',15000);
   await screenshot('17-lockscreen-clock');
   adb('shell','am','start','-n',app+'/.MainActivity');client=await connect();
+  await until(()=>client.evaluate("!!document.querySelector('.mobile-nav [data-nav=\"alarm\"]')"),'The native ledger page is ready after returning from the lock screen');
   await until(async()=>JSON.parse(await client.evaluate('AndroidApp.clockStatus()')).soundPlaying===true,'Alarm audio is actually playing using the native alarm stream');
-  await client.evaluate("(() => {const s=JSON.parse(AndroidApp.loadLedger());s.revision++;s.reminderSettings.enabled=false;const raw=JSON.stringify(s);localStorage.setItem('yiri-campus-life-v1',raw);return AndroidApp.saveLedger(raw);})()");
+  await client.evaluate("(() => {const s=JSON.parse(AndroidApp.loadLedger());s.revision++;s.reminderSettings.enabled=false;return AndroidApp.saveLedger(JSON.stringify(s));})()");
   await until(async()=>JSON.parse(await client.evaluate('AndroidApp.clockStatus()')).ringing===true,'Disabling task reminders and saving the ledger does not stop the independent alarm');
   assert(adb('shell','cmd','notification','list').includes('|4901|'));
   await client.evaluate("document.querySelector('.mobile-nav [data-nav=\"alarm\"]').click();document.querySelector('[data-open-ring]').click();true");
@@ -49,7 +50,7 @@ try {
   await client.evaluate("document.querySelector('[data-edit-alarm]').click();document.querySelector('#delete-alarm').click();true");tapText('确定');
   await until(()=>client.evaluate('JSON.parse(AndroidApp.loadLedger()).alarms.length===0'),'Deleting the alarm removes its row and pending ringing state');
   const raw=JSON.stringify({...original,revision:original.revision+100});
-  await client.evaluate(`AndroidApp.saveLedger(${JSON.stringify(raw)});localStorage.setItem('yiri-campus-life-v1',${JSON.stringify(raw)});location.reload();true`);
+  await client.evaluate(`AndroidApp.saveLedger(${JSON.stringify(raw)});location.reload();true`);
   await until(()=>client.evaluate("!!document.querySelector('[data-category]')"),'Original ledger reloads after the alarm checks');
   const restored=JSON.parse(await client.evaluate('AndroidApp.loadLedger()'));assert.deepEqual(restored.records,original.records);assert.equal(restored.timeEntries.length,6);assert.deepEqual(restored.alarms,original.alarms);
   await writeFile('android/clock-report.json',JSON.stringify({passed:true,checks},null,2));
