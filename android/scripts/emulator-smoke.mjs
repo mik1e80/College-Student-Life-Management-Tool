@@ -69,6 +69,10 @@ async function until(expression, message) {
 }
 
 try {
+  // The Google-API emulator launcher can show an unrelated startup ANR over our app.
+  // Keep device error dialogs from consuming test input; app hangs still fail CDP checks.
+  adb('shell','settings','put','global','hide_error_dialogs','1');
+  adb('shell','am','force-stop','com.google.android.apps.nexuslauncher');
   adb('install', '-r', apk);
   adb('shell', 'pm', 'clear', app);
   adb('shell', 'svc', 'wifi', 'disable');
@@ -92,6 +96,7 @@ try {
   // Persistence completes before the asynchronous form handler resets its draft.
   // Wait for the user-visible completion before exercising native navigation.
   await until("document.querySelector('#toast').textContent.startsWith('已保存') && document.querySelector('#actual-input')?.value==='8.50'", 'The expense form has completed saving before System Back');
+  assert.match(adb('shell','dumpsys','window','windows'),/mCurrentFocus=.*cn\.yiriyoushu\.campuslife/);
   adb('shell', 'input', 'keyevent', '4');
   await until("!document.querySelector('#actual-form') && !!document.querySelector('[data-item]')", 'System Back returns from detail to the category');
   await screenshot('03-category');
