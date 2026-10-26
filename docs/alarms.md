@@ -9,3 +9,5 @@
 网页支持页面运行时弹窗和声音，需要先启用页面响铃；关闭页面、休眠或浏览器限制声音时无法保证响铃，后台/锁屏请使用安卓版。网页和安卓的数据仍独立保存。
 
 实现依据：[系统闹钟调度](https://developer.android.com/develop/background-work/services/alarms)、[前台播放服务](https://developer.android.com/develop/background-work/services/fgs/service-types)、[锁屏闹钟权限](https://source.android.com/docs/core/permissions/fsi-limits)。权限和锁屏大界面仅用于用户设置的闹钟。
+
+设备默认闹钟或通知铃声不可读时，安卓版使用内置备用提示音；仍遵守系统闹钟音量和音频焦点。

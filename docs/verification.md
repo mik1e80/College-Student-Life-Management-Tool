@@ -142,3 +142,19 @@ APK 1.5.0 / versionCode 8，962369 字节。沿用原发行证书，v2 / v3 签�
 构建源码 `7d792d928e65872b56a81e836179c7cc909d9ea3`。附件包括 APK、校验文件、release.json 和下载页 ZIP。
 
 截图：[编辑器](screenshots/reminder-editor-1.6.0.png)、[开始弹窗](screenshots/reminder-start-1.6.0.png)、[结束弹窗](screenshots/reminder-end-1.6.0.png)。
+
+## 1.7.0 独立闹钟
+
+77 项单元测试通过。[安卓构建与模拟器验证](https://github.com/mik1e80/College-Student-Life-Management-Tool/actions/runs/40285747347) build / smoke 均成功：正常清理进程并熄屏后，系统闹钟触发响铃服务和锁屏界面，音频播放状态为 true；保存账本、关闭任务提醒均不影响正在响的闹钟。点击稍后 10 分钟后音频停止并注册十分钟后的提醒；取消稍后、工作日重复、开关取消、删除确认及原账本恢复全部通过。旧 8.50 元记录和六条时间安排保留。
+
+浏览器确认独立入口、六项导航、工作日默认值和 10 分钟稍后选项，真实时刻触发弹窗并成功停止，页面无横向溢出。
+
+正式 APK 1.7.0 / versionCode 10，1048755 字节，沿用原发行证书且 v2 / v3 验证有效。14 个网页运行资源与源码逐字节一致，测试构建与签名输入一致。SHA-256：
+
+```text
+7870df8507c0af958a2ebfd6fb17d2a58faea86944c06576cbb34d2a0a87e2fe
+```
+
+构建源码 `ee34330025d78466639e36db34c3512eb3cf249f`。附件包含 APK、校验文件、release.json 与完整下载页 ZIP。
+
+截图：[闹钟页](screenshots/alarm-page-1.7.0.png)、[编辑器](screenshots/alarm-editor-1.7.0.png)。
