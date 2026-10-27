@@ -30,6 +30,8 @@ import androidx.webkit.WebViewAssetLoader;
 import org.json.JSONObject;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -46,7 +48,8 @@ public final class MainActivity extends Activity {
     private static final String APP_HOST = "appassets.androidplatform.net";
     private static final String APP_URL = "https://" + APP_HOST + "/assets/index.html";
     private static final int CREATE_EXPORT = 1001;
-    private static final int MAX_EXPORT_BYTES = 1024 * 1024;
+    private static final int MAX_EXPORT_BYTES = 4 * 1024 * 1024;
+    private static final int OPEN_BACKUP = 1002;
     private static final int MAX_LEDGER_BYTES = 4 * 1024 * 1024;
     static final Object LEDGER_LOCK = new Object();
     private static java.lang.ref.WeakReference<MainActivity> visibleActivity = new java.lang.ref.WeakReference<>(null);
@@ -57,6 +60,7 @@ public final class MainActivity extends Activity {
     private WebView webView;
     private String pendingExportToken;
     private boolean writingExport;
+    private boolean choosingBackup;
     private OnBackInvokedCallback backCallback;
 
     @Override
@@ -210,6 +214,40 @@ public final class MainActivity extends Activity {
 
     private final class AppBridge {
         @JavascriptInterface
+        public String loadRecovery() {
+            synchronized (LEDGER_LOCK) {
+                try { return new String(new AtomicFile(new File(getFilesDir(), "ledger-recovery.json")).readFully(), StandardCharsets.UTF_8); }
+                catch (FileNotFoundException absent) { return null; }
+                catch (IOException error) { throw new IllegalStateException("恢复前备份无法读取", error); }
+            }
+        }
+
+        @JavascriptInterface
+        public boolean saveRecovery(String text) {
+            if(text == null || text.length() > MAX_LEDGER_BYTES) return false;
+            byte[] bytes = text.getBytes(StandardCharsets.UTF_8);
+            if(bytes.length > MAX_LEDGER_BYTES) return false;
+            synchronized (LEDGER_LOCK) {
+                AtomicFile file = new AtomicFile(new File(getFilesDir(), "ledger-recovery.json"));
+                FileOutputStream stream = null;
+                try {
+                    new JSONObject(text);
+                    stream = file.startWrite(); stream.write(bytes); stream.getFD().sync(); file.finishWrite(stream);
+                    return true;
+                } catch(Exception error) { if(stream != null) file.failWrite(stream); return false; }
+            }
+        }
+
+        @JavascriptInterface
+        public void chooseBackup() {
+            runOnUiThread(() -> {
+                if(!isTrustedPage() || choosingBackup) return;
+                choosingBackup = true;
+                try { startActivityForResult(new Intent(Intent.ACTION_OPEN_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType("*/*"), OPEN_BACKUP); }
+                catch(ActivityNotFoundException error) { choosingBackup=false; backupResult(null,"无法打开文件选择窗口，请重试"); }
+            });
+        }
+        @JavascriptInterface
         public boolean isNative() { return true; }
 
         @JavascriptInterface
@@ -304,12 +342,12 @@ public final class MainActivity extends Activity {
         @JavascriptInterface
         public void saveText(String name, String mime, String text) {
             if (text == null || text.length() > MAX_EXPORT_BYTES) {
-                runOnUiThread(() -> exportResult(false, "导出内容不能超过 1 MiB"));
+                runOnUiThread(() -> exportResult(false, "导出内容不能超过 4 MiB"));
                 return;
             }
             byte[] bytes = text.getBytes(StandardCharsets.UTF_8);
             if (bytes.length > MAX_EXPORT_BYTES) {
-                runOnUiThread(() -> exportResult(false, "导出内容不能超过 1 MiB"));
+                runOnUiThread(() -> exportResult(false, "导出内容不能超过 4 MiB"));
                 return;
             }
             String mediaType = mime == null ? "" : mime.split(";", 2)[0].trim().toLowerCase(Locale.ROOT);
@@ -323,6 +361,11 @@ public final class MainActivity extends Activity {
             final String safeName = suggested;
             runOnUiThread(() -> beginExport(safeName, mediaType, bytes));
         }
+    }
+
+    private void backupResult(String text, String error) {
+        if(!isTrustedPage()) return;
+        webView.evaluateJavascript("window.YiriBackupSelected && window.YiriBackupSelected("+JSONObject.quote(text)+","+JSONObject.quote(error)+")",null);
     }
 
     private File exportFile(String token) { return new File(getCacheDir(), "yiri-export-" + token + ".tmp"); }
@@ -351,6 +394,29 @@ public final class MainActivity extends Activity {
     @SuppressWarnings("deprecation")
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        if(requestCode == OPEN_BACKUP) {
+            boolean pending = choosingBackup; choosingBackup = false;
+            if(!pending || !isTrustedPage()) return;
+            if(resultCode != RESULT_OK || data == null || data.getData() == null) { backupResult(null,"已取消选择备份"); return; }
+            Uri selected = data.getData();
+            if(!"content".equals(selected.getScheme())) { backupResult(null,"请选择本机文档中的备份"); return; }
+            new Thread(() -> {
+                String raw = null, error = null;
+                try(InputStream input = getContentResolver().openInputStream(selected); ByteArrayOutputStream output = new ByteArrayOutputStream()) {
+                    if(input == null) throw new IOException("No input");
+                    byte[] buffer = new byte[8192]; int count;
+                    while((count=input.read(buffer)) != -1) {
+                        if(output.size()+count > MAX_LEDGER_BYTES) throw new IOException("Size limit");
+                        output.write(buffer,0,count);
+                    }
+                    raw = StandardCharsets.UTF_8.newDecoder().onMalformedInput(java.nio.charset.CodingErrorAction.REPORT)
+                            .decode(java.nio.ByteBuffer.wrap(output.toByteArray())).toString();
+                } catch(Exception failed) { error="备份无法读取，请选择不超过 4 MiB 的 UTF-8 JSON 文件"; }
+                final String text=raw, message=error;
+                runOnUiThread(() -> backupResult(text,message));
+            },"backup-reader").start();
+            return;
+        }
         if (requestCode != CREATE_EXPORT) return;
         if (resultCode != RESULT_OK || data == null || data.getData() == null) {
             clearPendingExport();

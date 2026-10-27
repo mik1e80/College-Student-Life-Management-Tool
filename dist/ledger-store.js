@@ -5,6 +5,14 @@ export function createLedgerStore(storage, key, bridge = null) {
   const native = !!bridge && typeof bridge.loadLedger === 'function' && typeof bridge.saveLedger === 'function';
   return {
     native,
+    loadRecovery() {
+      return native && typeof bridge.loadRecovery === 'function' ? bridge.loadRecovery() : storage.getItem(key+'-recovery');
+    },
+    saveRecovery(raw) {
+      if (native && typeof bridge.saveRecovery === 'function') {
+        if (!bridge.saveRecovery(raw)) throw Error('恢复前备份未能保存，原账本未更改');
+      } else storage.setItem(key+'-recovery', raw);
+    },
     load() {
       const checkpointRaw = native ? bridge.loadLedger() : null;
       const checkpoint = checkpointRaw ? readState(checkpointRaw) : null;
