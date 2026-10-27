@@ -39,6 +39,13 @@ try {
   await until(async()=>JSON.parse(await client.evaluate('AndroidApp.clockStatus()')).ringing===true,'Disabling task reminders and saving the ledger does not stop the independent alarm');
   assert(adb('shell','cmd','notification','list').includes('|4901|'));
   await client.evaluate("document.querySelector('.mobile-nav [data-nav=\"alarm\"]').click();document.querySelector('[data-open-ring]').click();true");
+  // The WebView bridge posts Activity launch asynchronously. Wait for input focus
+  // before tapping; a visible accessibility tree may still belong to the old window.
+  await until(()=>/mCurrentFocus=.*AlarmRingingActivity/.test(adb('shell','dumpsys','window')),'The reopened ringing activity owns input focus before snooze');
+  adb('shell','uiautomator','dump','/sdcard/clock-ready.xml');
+  const readyXml=adb('shell','cat','/sdcard/clock-ready.xml');
+  assert(readyXml.includes('text="稍后 10 分钟"'));
+  await writeFile('android/clock-ready.xml',readyXml);
   tapText('稍后 10 分钟');
   await until(async()=>{const s=JSON.parse(await client.evaluate('AndroidApp.clockStatus()'));return !s.ringing&&!s.soundPlaying&&s.nextAt>Date.now()+570000&&s.nextAt<Date.now()+610000;},'Snooze stops audio and schedules the next alarm ten minutes later');
   await client.evaluate("document.querySelector('[data-cancel-snooze]').click();true");
@@ -54,5 +61,5 @@ try {
   await until(()=>client.evaluate("!!document.querySelector('[data-category]')"),'Original ledger reloads after the alarm checks');
   const restored=JSON.parse(await client.evaluate('AndroidApp.loadLedger()'));assert.deepEqual(restored.records,original.records);assert.equal(restored.timeEntries.length,6);assert.deepEqual(restored.alarms,original.alarms);
   await writeFile('android/clock-report.json',JSON.stringify({passed:true,checks},null,2));
-}catch(error){try{if(client)await writeFile('android/clock-status.json',await client.evaluate('AndroidApp.clockStatus()'));await screenshot('clock-failure');await writeFile('android/clock-diagnostics.txt',adb('logcat','-d','-s','AlarmClock:V','MediaPlayer:V','MediaPlayerNative:V','AudioManager:V','MediaFocusControl:V','AudioService:V','AndroidRuntime:E')+'\n'+adb('shell','dumpsys','alarm'));}catch{}await writeFile('android/clock-report.json',JSON.stringify({passed:false,checks,error:error.message},null,2));throw error;}
+}catch(error){try{if(client)await writeFile('android/clock-status.json',await client.evaluate('AndroidApp.clockStatus()'));await screenshot('clock-failure');await writeFile('android/clock-diagnostics.txt',adb('logcat','-d','-s','AlarmClock:V','MediaPlayer:V','MediaPlayerNative:V','AudioManager:V','MediaFocusControl:V','AudioService:V','AndroidRuntime:E')+'\n'+adb('shell','dumpsys','window')+'\n'+adb('shell','dumpsys','alarm'));}catch{}await writeFile('android/clock-report.json',JSON.stringify({passed:false,checks,error:error.message},null,2));throw error;}
 finally{client?.close();try{adb('forward','--remove','tcp:9222');}catch{}}

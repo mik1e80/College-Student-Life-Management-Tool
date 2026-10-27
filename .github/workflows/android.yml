@@ -143,5 +143,6 @@ jobs:
             android/clock-report.json
             android/clock-diagnostics.txt
             android/clock-status.json
+            android/clock-ready.xml
             android/screenshots/*.png
           if-no-files-found: ignore
