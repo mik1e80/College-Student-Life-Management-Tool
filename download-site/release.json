@@ -1,16 +1,16 @@
 {
-  "version": "1.7.0",
-  "versionCode": 10,
+  "version": "1.8.0",
+  "versionCode": 11,
   "packageId": "cn.yiriyoushu.campuslife",
   "minAndroid": "8.0",
-  "filename": "yiri-1.7.0.apk",
-  "bytes": 1048755,
-  "sha256": "7870df8507c0af958a2ebfd6fb17d2a58faea86944c06576cbb34d2a0a87e2fe",
+  "filename": "yiri-1.8.0.apk",
+  "bytes": 1052913,
+  "sha256": "f80e4fe1796cfa13a22b7b493bb5d4c8155c38df912f46426effe350c404fb1a",
   "verified": true,
   "v1": false,
   "v2": true,
   "v3": true,
   "certificateSha256": "98fdf51994bc1c35b6041a7390403fd84fb78d0a8be662191edd13f87f250b8b",
-  "buildCommit": "ee34330025d78466639e36db34c3512eb3cf249f",
-  "buildWorkflow": "https://github.com/mik1e80/College-Student-Life-Management-Tool/actions/runs/40285747347"
+  "buildCommit": "f9fb5ef1151169b9f055a3868928910827b8b37d",
+  "buildWorkflow": "https://github.com/mik1e80/College-Student-Life-Management-Tool/actions/runs/40536959691"
 }

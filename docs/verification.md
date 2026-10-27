@@ -2,17 +2,29 @@
 
 ## 当前版本：1.8.0
 
-更新日期：2026-10-27。当前自动测试为 89 项通过、0 失败，源码构建提交 1a8cc61aff318e30b9af7edafe92abde17e4c290；下方 18 / 66 / 77 项等是相应旧版本历史记录。
+更新日期：2026-10-28。当前自动测试为 89 项通过、0 失败，源码构建提交 `f9fb5ef1151169b9f055a3868928910827b8b37d`；下方 18 / 66 / 77 项等是相应旧版本历史记录。
 
 | 验证层级 | 当前结果与范围 |
 | --- | --- |
 | Node 单元测试 | 89 项通过：含 12 项备份校验、旧格式、恢复原子性、失败保留、恢复前副本与 77 项既有规则 |
 | 浏览器人工操作 | 窄屏大类/小类直接删除、取消、预算草稿 9.75 保留；选择真实文件预览并恢复 8.50 元记录，恢复前副本找回，损坏 JSON 拒绝 |
-| Android 35 模拟器 | 本次完整工作流检查中，最终结果在发行前补充；1.7.0 后台与锁屏响铃验证为上一版历史结果 |
+| Android 35 模拟器 | [当前工作流](https://github.com/mik1e80/College-Student-Life-Management-Tool/actions/runs/40536959691) build / smoke 全部通过；真实系统文件选择、恢复与恢复前副本、直接删除、原账本重启、后台任务提醒、锁屏闹钟/声音/稍后十分钟均通过 |
 | 实体 Android / iPhone | 尚未验证，具体矩阵见 [后续计划](roadmap.md)，不能用模拟器或窄屏预览代替 |
-| APK 发行 | 1.8.0 / versionCode 11，原包名及发行证书；签名、大小、校验值在最终发行补充 |
+| APK 发行 | 1.8.0 / versionCode 11，1052913 字节，原包名及证书，v2 / v3 有效；SHA-256 见下方当前发行信息 |
 
 备份恢复和手动迁移规则见 [备份说明](backups.md)。网页与 APK 不自动同步。当前页面运行的提醒限制、无云同步和设备时间可被修改的边界依然适用。
+
+
+## 1.8.0 当前发行信息
+
+- 构建源码：`f9fb5ef1151169b9f055a3868928910827b8b37d`。
+- [完整安卓验证](https://github.com/mik1e80/College-Student-Life-Management-Tool/actions/runs/40536959691)：build / smoke 成功；89 项单元测试通过。
+- 15 个内嵌网页资源与当前源文件逐字节一致；最终检查构建的 unsigned APK 与签名输入一致。
+- APK：yiri-1.8.0.apk，1052913 字节，SHA-256 `f80e4fe1796cfa13a22b7b493bb5d4c8155c38df912f46426effe350c404fb1a`。
+- 原发行证书 SHA-256：`98fdf51994bc1c35b6041a7390403fd84fb78d0a8be662191edd13f87f250b8b`；支持覆盖升级。
+- [发布页面](https://github.com/mik1e80/College-Student-Life-Management-Tool/releases/tag/v1.8.0)。
+
+浏览器截图：[分类删除](screenshots/category-delete-1.8.0.png)、[备份预览](screenshots/backup-preview-1.8.0.png)。实体 Android 和 iPhone 仍待验证。
 
 ## 以下为历史版本记录
 
