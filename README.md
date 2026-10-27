@@ -2,9 +2,9 @@
 
 大学生生活管理工具，提供安卓 APK 和手机网页版本。安卓包内置账本页面，安装后可离线使用，不需要 Google Play 服务。
 
-**[下载安卓版 APK](https://github.com/mik1e80/College-Student-Life-Management-Tool/releases/download/v1.7.0/yiri-1.7.0.apk)** · [GitHub 版本页面](https://github.com/mik1e80/College-Student-Life-Management-Tool/releases/tag/v1.7.0) · Android 8.0 及以上、可正常工作的现代系统 WebView。
+**[下载安卓版 APK](https://github.com/mik1e80/College-Student-Life-Management-Tool/releases/download/v1.8.0/yiri-1.8.0.apk)** · [GitHub 版本页面](https://github.com/mik1e80/College-Student-Life-Management-Tool/releases/tag/v1.8.0) · Android 8.0 及以上、可正常工作的现代系统 WebView。
 
-1.7.0 新增独立「闹钟」页：支持仅一次、每周重复、标签、振动、持续响铃和稍后提醒，默认稍后 10 分钟。安卓可在后台响铃，原任务提醒与账本保留。沿用原签名，直接覆盖安装，请勿先卸载。
+1.8.0 新增大类/小类直接删除入口及完整 JSON 备份恢复，支持网页与 APK 手动迁移；恢复前自动保留原账本。已有实际记录的分类不可删除。沿用原签名，直接覆盖安装，请勿先卸载。
 
 **[打开双衡](https://campus-life-yiri-20261025.my-team-1261.chatgpt.site)** · 公开访问，无需登录。手机安装说明见 [使用说明](docs/usage.md)。
 
@@ -83,3 +83,7 @@ node --test tests/*.test.mjs
 以下是本地人工测试数据，不是预置账单。
 
 <img src="docs/screenshots/home-shuangheng-1.5.0.png" alt="双衡黑白手机首页" width="240"> <img src="docs/screenshots/plan-shuangheng-1.5.0.png" alt="双衡黑白预算计划" width="240">
+
+- [完整备份、恢复与迁移](docs/backups.md)
+- [后续计划与真实设备验证](docs/roadmap.md)
+- [安卓版 1.8.0 发行说明](docs/releases/v1.8.0.md)
